@@ -1,0 +1,8 @@
+pluginManagement {
+    repositories {
+        mavenLocal()
+        maven { url 'http://repositories.rd.lan/maven/all' }
+        // fallback solution in case the internal repository is not available
+        gradlePluginPortal()
+    }
+}
