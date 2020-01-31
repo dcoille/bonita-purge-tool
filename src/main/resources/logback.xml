@@ -7,7 +7,7 @@
         </encoder>
     </appender>
     <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-        <file>live-migration.log</file>
+        <file>bonita_purge.log</file>
         <append>true</append>
         <encoder>
             <pattern>|%d{HH:mm:ss.SSS}|%thread|%-5level|%logger{16}| %msg%n</pattern>
