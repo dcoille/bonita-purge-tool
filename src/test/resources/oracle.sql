@@ -1,14 +1,3 @@
-CREATE TABLE arch_contract_data_backup (
-  tenantid NUMBER(19, 0) NOT NULL,
-  id NUMBER(19, 0) NOT NULL,
-  kind VARCHAR2(20 CHAR) NOT NULL,
-  scopeId NUMBER(19, 0) NOT NULL,
-  name VARCHAR2(50 CHAR) NOT NULL,
-  val BLOB,
-  archiveDate NUMBER(19, 0) NOT NULL,
-  sourceObjectId NUMBER(19, 0) NOT NULL
-);
-
 CREATE TABLE arch_contract_data (
   tenantid NUMBER(19, 0) NOT NULL,
   id NUMBER(19, 0) NOT NULL,

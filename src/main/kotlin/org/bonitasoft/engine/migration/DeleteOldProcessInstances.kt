@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service
 import java.time.Instant
 import java.time.ZoneId
 import kotlin.system.exitProcess
+import kotlin.system.measureTimeMillis
 
 @Service
 class DeleteOldProcessInstances(
@@ -57,7 +58,11 @@ AND A.ROOTPROCESSINSTANCEID = B.ROOTPROCESSINSTANCEID) AND tenantId = ?""", proc
         statements.forEach { statement ->
             run {
                 logger.info("Executing SQL: $statement")
-                logger.info("${jdbcTemplate.update(statement, tenantId, tenantId)} rows deleted")
+                var nbRowsDeleted = 0
+                val executionTime = measureTimeMillis {
+                    nbRowsDeleted = jdbcTemplate.update(statement, tenantId, tenantId)
+                }
+                logger.info("$nbRowsDeleted rows deleted in $executionTime ms")
             }
         }
 
