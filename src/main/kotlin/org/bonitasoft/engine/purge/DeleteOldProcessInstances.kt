@@ -23,8 +23,8 @@ class DeleteOldProcessInstances(
 
     fun execute(processDefinitionId: Long, date: Long, tenantId: Long = 1L) {
 
-        logger.info("Database is $databaseUrl")
-        logger.info("Tenant id is $tenantId")
+        logger.info("Database URL is $databaseUrl")
+        logger.info("Tenant id used is $tenantId")
         logger.info("All settings can be changed in application.properties file")
 
         val processDefinition = getProcessDefinition(processDefinitionId)
