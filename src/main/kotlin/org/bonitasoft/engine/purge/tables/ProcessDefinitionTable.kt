@@ -1,4 +1,4 @@
-package org.bonitasoft.engine.migration.tables
+package org.bonitasoft.engine.purge.tables
 
 import org.jetbrains.exposed.sql.Table
 

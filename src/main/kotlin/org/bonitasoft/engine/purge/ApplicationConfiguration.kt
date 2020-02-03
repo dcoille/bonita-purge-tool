@@ -1,4 +1,4 @@
-package org.bonitasoft.engine.migration
+package org.bonitasoft.engine.purge
 
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.TransactionManager

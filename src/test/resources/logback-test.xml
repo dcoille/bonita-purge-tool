@@ -7,7 +7,7 @@
         </encoder>
     </appender>
 
-    <appender name="UNIT_TEST" class="org.bonitasoft.engine.migration.TestLoggerAppender"/>
+    <appender name="UNIT_TEST" class="org.bonitasoft.engine.purge.TestLoggerAppender"/>
 
 
     <logger name="org.bonitasoft" level="DEBUG"/>

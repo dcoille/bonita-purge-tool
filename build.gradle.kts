@@ -23,14 +23,14 @@ tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "1.8"
 }
 
-group = "org.bonitasoft.migration"
+group = "org.bonitasoft.engine.purge"
 
 configurations {
     create("distributionZip")
 }
 
 application {
-    mainClassName = "org.bonitasoft.engine.migration.ApplicationKt"
+    mainClassName = "org.bonitasoft.engine.purge.ApplicationKt"
 }
 springBoot {
     distributions.getByName("boot") {
@@ -79,8 +79,9 @@ dependencies {
     testImplementation("org.springframework.boot", "spring-boot-starter-test")
     testImplementation("org.apache.commons", "commons-csv", "1.6")
     testImplementation(kotlin("test-junit5"))
-    testImplementation("org.junit.jupiter:junit-jupiter:5.5.0")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.6.0")
     testImplementation("org.assertj:assertj-core:3.11.1")
+    testImplementation("io.mockk:mockk:1.9.3")
 
     testRuntimeOnly("com.oracle:ojdbc:8.12.2.0.1")
 

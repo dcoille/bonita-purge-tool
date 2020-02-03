@@ -1,6 +1,6 @@
-package org.bonitasoft.engine.migration
+package org.bonitasoft.engine.purge
 
-import org.bonitasoft.engine.migration.tables.ProcessDefinitionTable
+import org.bonitasoft.engine.purge.tables.ProcessDefinitionTable
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.LoggerFactory
@@ -22,26 +22,26 @@ class DeleteOldProcessInstances(
     private val logger = LoggerFactory.getLogger(DeleteOldProcessInstances::class.java)
 
     fun execute(processDefinitionId: Long, date: Long, tenantId: Long = 1L) {
-        transaction {
-            ProcessDefinitionTable
-                    .select {
-                        ProcessDefinitionTable.id eq processDefinitionId
-                    }
-                    .forEach {
-                        logger.info("Will purge all archived process instances and their elements for process " +
-                                "'${it[ProcessDefinitionTable.name]}' in version '${it[ProcessDefinitionTable.version]}'" +
-                                " that are finished since at least ${Instant.ofEpochMilli(date).atZone(ZoneId.systemDefault()).toLocalDateTime()}")
-                    }
-        }
+
         logger.info("Database is $databaseUrl")
         logger.info("Tenant id is $tenantId")
         logger.info("All settings can be changed in application.properties file")
+
+        val processDefinition = getProcessDefinition(processDefinitionId)
+        if (processDefinition.isEmpty()) {
+            logger.error("No process definition exists for id $processDefinitionId. Exiting.")
+            quitWithCode(1)
+        } else {
+            logger.info("Will purge all archived process instances and their elements for process " +
+                    "'${processDefinition[0].first}' in version '${processDefinition[0].second}'" +
+                    " that are finished since at least ${Instant.ofEpochMilli(date).atZone(ZoneId.systemDefault()).toLocalDateTime()}")
+        }
         if (!skipConfirmation) {
             println("Start the purge using the above parameters? [y/N]")
             val readLine = readLine()
             if ("Y" != readLine?.toUpperCase()) {
                 println("Purge cancelled")
-                exitProcess(1)
+                quitWithCode(2)
             }
         }
         logger.info("Starting archive process instance purge....")
@@ -66,5 +66,17 @@ AND A.ROOTPROCESSINSTANCEID = B.ROOTPROCESSINSTANCEID) AND tenantId = ?""", proc
             }
         }
 
+    }
+
+    fun quitWithCode(i: Int) {
+        exitProcess(i)
+    }
+
+    fun getProcessDefinition(processDefinitionId: Long): List<Pair<String, String>> = transaction {
+        ProcessDefinitionTable
+                .select {
+                    ProcessDefinitionTable.id eq processDefinitionId
+                }
+                .map { it[ProcessDefinitionTable.name] to it[ProcessDefinitionTable.version] }
     }
 }

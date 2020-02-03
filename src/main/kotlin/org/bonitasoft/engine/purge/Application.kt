@@ -1,4 +1,4 @@
-package org.bonitasoft.engine.migration
+package org.bonitasoft.engine.purge
 
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication

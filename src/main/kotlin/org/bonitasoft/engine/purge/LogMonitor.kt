@@ -1,4 +1,4 @@
-package org.bonitasoft.engine.migration
+package org.bonitasoft.engine.purge
 
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled

@@ -1,8 +1,8 @@
-package org.bonitasoft.engine.migration
+package org.bonitasoft.engine.purge
 
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.AppenderBase
-import java.util.ArrayList
+import java.util.*
 
 class TestLoggerAppender : AppenderBase<ILoggingEvent>() {
 
