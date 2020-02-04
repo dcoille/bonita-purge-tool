@@ -24,14 +24,76 @@ internal class DeleteOldProcessInstancesTest {
     fun execute_should_fail_if_process_does_not_exist() {
         TestLoggerAppender.clear()
 
+        every { deleteOldProcessInstances.checkTenantIdValidity(any()) } returns 0L
         every { deleteOldProcessInstances.getProcessDefinition(111L) } returns emptyList()
         every { deleteOldProcessInstances.quitWithCode(1) } throws RuntimeException("For test only")
 
         assertThrows<RuntimeException> {
-            deleteOldProcessInstances.execute(111L, 11265345666L)
+            deleteOldProcessInstances.execute(111L, 11265345666L, null)
         }
 
         verify { deleteOldProcessInstances.quitWithCode(1) }
         assertThat(TestLoggerAppender.allLogs()).anyMatch { it.message.contains("No process definition exists for id 111. Exiting.") }
+    }
+
+    @Test
+    fun `multi-tenant platform with tenantId not set should display error message`() {
+        TestLoggerAppender.clear()
+
+        every { deleteOldProcessInstances.getAllTenants() } returns mapOf(Pair(1L, "default"), Pair(101L, "Second"))
+        every { deleteOldProcessInstances.quitWithCode(1) } throws RuntimeException("For test only")
+
+        assertThrows<RuntimeException> {
+            deleteOldProcessInstances.checkTenantIdValidity(null)
+        }
+        assertThat(TestLoggerAppender.allLogs()).anyMatch { it.message.contains("Multiple tenants exist [1=default, 101=Second]. Please specify tenant ID as 3rd parameter") }
+    }
+
+    @Test
+    fun `no-tenant platform should display error message`() {
+        TestLoggerAppender.clear()
+
+        every { deleteOldProcessInstances.getAllTenants() } returns emptyMap()
+        every { deleteOldProcessInstances.quitWithCode(1) } throws RuntimeException("For test only")
+
+        assertThrows<RuntimeException> {
+            deleteOldProcessInstances.checkTenantIdValidity(null)
+        }
+        assertThat(TestLoggerAppender.allLogs()).anyMatch { it.message.contains("No tenant exists. Platform invalid") }
+    }
+
+    @Test
+    fun `non-existing tenantId should display error message`() {
+        TestLoggerAppender.clear()
+
+        every { deleteOldProcessInstances.getAllTenants() } returns mapOf(Pair(1L, "default"))
+        every { deleteOldProcessInstances.quitWithCode(1) } throws RuntimeException("For test only")
+
+        assertThrows<RuntimeException> {
+            deleteOldProcessInstances.checkTenantIdValidity(42L)
+        }
+        assertThat(TestLoggerAppender.allLogs()).anyMatch { it.message.contains("Tenant with ID 42 does not exist. Available tenants are") }
+    }
+
+    @Test
+    fun `mono-tenant platform should use this tenant if tenantId not set`() {
+        TestLoggerAppender.clear()
+
+        every { deleteOldProcessInstances.getAllTenants() } returns mapOf(Pair(7L, "other tenant"))
+
+        val tenantIdValidity = deleteOldProcessInstances.checkTenantIdValidity(null)
+
+        assertThat(tenantIdValidity).isEqualTo(7L)
+    }
+
+    @Test
+    fun `mono-tenant platform should use passed tenant if tenantId IS set`() {
+        TestLoggerAppender.clear()
+
+        every { deleteOldProcessInstances.getAllTenants() } returns mapOf(Pair(8L, "other tenant"))
+
+        val tenantIdValidity = deleteOldProcessInstances.checkTenantIdValidity(8L)
+
+        assertThat(tenantIdValidity).isEqualTo(8L)
     }
 }

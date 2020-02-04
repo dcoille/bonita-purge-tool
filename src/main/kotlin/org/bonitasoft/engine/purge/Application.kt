@@ -15,7 +15,7 @@ fun main(args: Array<String>) {
     val context = SpringApplication.run(Application::class.java, *args)
     val bean = context.getBean(DeleteOldProcessInstances::class.java)
     // tenantId, parameter number 3, is optional:
-    val tenantId = if (args.size > 2) args[2].toLong() else 1L
+    val tenantId: Long? = if (args.size > 2) args[2].toLong() else null
     if (args.size < 2) {
         usage()
         exitProcess(-1)

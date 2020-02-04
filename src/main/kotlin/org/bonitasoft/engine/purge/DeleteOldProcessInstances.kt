@@ -1,7 +1,9 @@
 package org.bonitasoft.engine.purge
 
 import org.bonitasoft.engine.purge.tables.ProcessDefinitionTable
+import org.bonitasoft.engine.purge.tables.Tenant
 import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -21,10 +23,11 @@ class DeleteOldProcessInstances(
 
     private val logger = LoggerFactory.getLogger(DeleteOldProcessInstances::class.java)
 
-    fun execute(processDefinitionId: Long, date: Long, tenantId: Long = 1L) {
+    fun execute(processDefinitionId: Long, date: Long, tenantId: Long?) {
+        val validTenantId = checkTenantIdValidity(tenantId)
 
         logger.info("Database URL is $databaseUrl")
-        logger.info("Tenant id used is $tenantId")
+        logger.info("Tenant id used is $validTenantId")
         logger.info("All settings can be changed in application.properties file")
 
         val processDefinition = getProcessDefinition(processDefinitionId)
@@ -40,7 +43,7 @@ class DeleteOldProcessInstances(
             println("Start the purge using the above parameters? [y/N]")
             val readLine = readLine()
             if ("Y" != readLine?.toUpperCase()) {
-                println("Purge cancelled")
+                logger.warn("Purge cancelled")
                 quitWithCode(2)
             }
         }
@@ -50,7 +53,7 @@ DELETE FROM ARCH_PROCESS_INSTANCE A WHERE exists (
 SELECT rootprocessinstanceid
 FROM ARCH_PROCESS_INSTANCE B
 WHERE PROCESSDEFINITIONID = ? AND ENDDATE > ?
-AND A.ROOTPROCESSINSTANCEID = B.ROOTPROCESSINSTANCEID) AND tenantId = ?""", processDefinitionId, date, tenantId)
+AND A.ROOTPROCESSINSTANCEID = B.ROOTPROCESSINSTANCEID) AND tenantId = ?""", processDefinitionId, date, validTenantId)
         logger.info("Deleted $nbRows lines from table ARCH_PROCESS_INSTANCE...")
 
         val statements: MutableList<String> = mutableListOf()
@@ -60,17 +63,43 @@ AND A.ROOTPROCESSINSTANCEID = B.ROOTPROCESSINSTANCEID) AND tenantId = ?""", proc
                 logger.info("Executing SQL: $statement")
                 var nbRowsDeleted = 0
                 val executionTime = measureTimeMillis {
-                    nbRowsDeleted = jdbcTemplate.update(statement, tenantId, tenantId)
+                    nbRowsDeleted = jdbcTemplate.update(statement, validTenantId, validTenantId)
                 }
                 logger.info("$nbRowsDeleted rows deleted in $executionTime ms")
             }
         }
-
     }
 
-    fun quitWithCode(i: Int) {
-        exitProcess(i)
+    fun checkTenantIdValidity(tenantId: Long?): Long {
+        val tenants = getAllTenants()
+        if (tenantId == null) {
+            when {
+                tenants.size > 1 -> {
+                    logger.error("Multiple tenants exist ${tenants.entries}. Please specify tenant ID as 3rd parameter")
+                    quitWithCode(1)
+                }
+                tenants.isEmpty() -> { // 0 tenants:
+                    logger.error("No tenant exists. Platform invalid")
+                    quitWithCode(1)
+                }
+                else -> return tenants.keys.first()
+            }
+        } else {
+            if (!tenants.containsKey(tenantId)) {
+                logger.error("Tenant with ID $tenantId does not exist. Available tenants are ${tenants.entries}")
+                quitWithCode(1)
+            } else {
+                return tenantId
+            }
+        }
     }
+
+    fun quitWithCode(i: Int): Nothing = exitProcess(i)
+
+    fun getAllTenants() =
+            Tenant.slice(Tenant.id, Tenant.name)
+                    .selectAll()
+                    .map { it[Tenant.id] to it[Tenant.name] }.toMap()
 
     fun getProcessDefinition(processDefinitionId: Long): List<Pair<String, String>> = transaction {
         ProcessDefinitionTable
