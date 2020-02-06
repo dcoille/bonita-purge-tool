@@ -52,8 +52,9 @@ class DeleteOldProcessInstances(
 DELETE FROM ARCH_PROCESS_INSTANCE A WHERE exists (
 SELECT rootprocessinstanceid
 FROM ARCH_PROCESS_INSTANCE B
-WHERE PROCESSDEFINITIONID = ? AND ENDDATE > ?
-AND A.ROOTPROCESSINSTANCEID = B.ROOTPROCESSINSTANCEID) AND tenantId = ?""", processDefinitionId, date, validTenantId)
+WHERE B.ROOTPROCESSINSTANCEID = B.SOURCEOBJECTID
+AND A.ROOTPROCESSINSTANCEID = B.ROOTPROCESSINSTANCEID
+AND PROCESSDEFINITIONID = ? AND ENDDATE < ?) AND tenantId = ?""", processDefinitionId, date, validTenantId)
         logger.info("Deleted $nbRows lines from table ARCH_PROCESS_INSTANCE...")
 
         val statements: MutableList<String> = mutableListOf()
