@@ -15,3 +15,7 @@ object Tenant : Table("tenant") {
     val name = varchar("name", 50)
     val id = long("id")
 }
+
+object ArchProcessInstance : Table("arch_process_instance") {
+    val definitionId = long("processDefinitionId")
+}

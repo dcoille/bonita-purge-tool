@@ -1,5 +1,8 @@
+@file:Suppress("SqlResolve")
+
 package org.bonitasoft.engine.purge
 
+import org.bonitasoft.engine.purge.tables.ArchProcessInstance
 import org.bonitasoft.engine.purge.tables.ProcessDefinitionTable
 import org.bonitasoft.engine.purge.tables.Tenant
 import org.jetbrains.exposed.sql.select
@@ -31,13 +34,21 @@ class DeleteOldProcessInstances(
         logger.info("All settings can be changed in application.properties file")
 
         val processDefinition = getProcessDefinition(processDefinitionId)
-        if (processDefinition.isEmpty()) {
-            logger.error("No process definition exists for id $processDefinitionId. Exiting.")
-            quitWithCode(1)
-        } else {
-            logger.info("Will purge all archived process instances and their elements for process " +
-                    "'${processDefinition[0].first}' in version '${processDefinition[0].second}'" +
-                    " that are finished since at least ${Instant.ofEpochMilli(date).atZone(ZoneId.systemDefault()).toLocalDateTime()}")
+        when {
+            processDefinition.isEmpty() -> {
+                logger.error("No process definition exists for id $processDefinitionId. Exiting.")
+                quitWithCode(1)
+            }
+            countArchivedProcessInstances(processDefinitionId) == 0 -> {
+                logger.info("No finished process instance exists for process " +
+                        "'${processDefinition[0].first}' in version '${processDefinition[0].second}'")
+                quitWithCode(1)
+            }
+            else -> {
+                logger.info("Will purge all archived process instances and their elements for process " +
+                        "'${processDefinition[0].first}' in version '${processDefinition[0].second}'" +
+                        " that are finished since at least ${Instant.ofEpochMilli(date).atZone(ZoneId.systemDefault()).toLocalDateTime()}")
+            }
         }
         if (!skipConfirmation) {
             println("Start the purge using the above parameters? [y/N]")
@@ -109,4 +120,13 @@ AND PROCESSDEFINITIONID = ? AND ENDDATE < ?) AND tenantId = ?""", processDefinit
                 }
                 .map { it[ProcessDefinitionTable.name] to it[ProcessDefinitionTable.version] }
     }
+
+    fun countArchivedProcessInstances(processDefinitionId: Long): Int = transaction {
+        ArchProcessInstance
+                .select {
+                    ArchProcessInstance.definitionId eq processDefinitionId
+                }
+                .count()
+    }
+
 }

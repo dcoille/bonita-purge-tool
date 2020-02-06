@@ -77,8 +77,6 @@ internal class DeleteOldProcessInstancesTest {
 
     @Test
     fun `mono-tenant platform should use this tenant if tenantId not set`() {
-        TestLoggerAppender.clear()
-
         every { deleteOldProcessInstances.getAllTenants() } returns mapOf(Pair(7L, "other tenant"))
 
         val tenantIdValidity = deleteOldProcessInstances.checkTenantIdValidity(null)
@@ -88,12 +86,29 @@ internal class DeleteOldProcessInstancesTest {
 
     @Test
     fun `mono-tenant platform should use passed tenant if tenantId IS set`() {
-        TestLoggerAppender.clear()
-
         every { deleteOldProcessInstances.getAllTenants() } returns mapOf(Pair(8L, "other tenant"))
 
         val tenantIdValidity = deleteOldProcessInstances.checkTenantIdValidity(8L)
 
         assertThat(tenantIdValidity).isEqualTo(8L)
+    }
+
+    @Test
+    fun `should log and exit if no process instance exists`() {
+        TestLoggerAppender.clear()
+
+        every { deleteOldProcessInstances.checkTenantIdValidity(1000L) } returns 1000L
+        every { deleteOldProcessInstances.getProcessDefinition(999888777L) } returns listOf(Pair("process", "1.1"))
+        every { deleteOldProcessInstances.countArchivedProcessInstances(999888777L) } returns 0
+        every { deleteOldProcessInstances.quitWithCode(any()) } throws RuntimeException("For test only")
+
+        assertThrows<RuntimeException> {
+            deleteOldProcessInstances.execute(999888777L, 165000000000L, 1000L)
+        }
+
+        verify { deleteOldProcessInstances.quitWithCode(any()) }
+
+
+        assertThat(TestLoggerAppender.allLogs()).anyMatch { it.message.contains("No finished process instance exists for process 'process' in version '1.1") }
     }
 }
