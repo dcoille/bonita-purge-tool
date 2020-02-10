@@ -17,5 +17,5 @@ object Tenant : Table("tenant") {
 }
 
 object ArchProcessInstance : Table("arch_process_instance") {
-    val definitionId = long("processDefinitionId")
+    val definitionId = long("PROCESSDEFINITIONID")
 }
