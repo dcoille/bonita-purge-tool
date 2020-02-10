@@ -65,7 +65,9 @@ SELECT rootprocessinstanceid
 FROM ARCH_PROCESS_INSTANCE B
 WHERE B.ROOTPROCESSINSTANCEID = B.SOURCEOBJECTID
 AND A.ROOTPROCESSINSTANCEID = B.ROOTPROCESSINSTANCEID
-AND PROCESSDEFINITIONID = ? AND ENDDATE < ?) AND tenantId = ?""", processDefinitionId, date, validTenantId)
+AND PROCESSDEFINITIONID = ?
+and STATEID = 6
+AND ENDDATE <= ?) AND tenantId = ?""", processDefinitionId, date, validTenantId)
         logger.info("Deleted $nbRows lines from table ARCH_PROCESS_INSTANCE...")
 
         val statements: MutableList<String> = mutableListOf()
@@ -83,7 +85,8 @@ AND PROCESSDEFINITIONID = ? AND ENDDATE < ?) AND tenantId = ?""", processDefinit
     }
 
     fun checkTenantIdValidity(tenantId: Long?): Long {
-        val tenants = getAllTenants()
+        val tenants =
+                getAllTenants()
         if (tenantId == null) {
             when {
                 tenants.size > 1 -> {
@@ -108,10 +111,10 @@ AND PROCESSDEFINITIONID = ? AND ENDDATE < ?) AND tenantId = ?""", processDefinit
 
     fun quitWithCode(i: Int): Nothing = exitProcess(i)
 
-    fun getAllTenants() =
+    fun getAllTenants() = transaction {
             Tenant.slice(Tenant.id, Tenant.name)
                     .selectAll()
-                    .map { it[Tenant.id] to it[Tenant.name] }.toMap()
+                    .map { it[Tenant.id] to it[Tenant.name] }.toMap() }
 
     fun getProcessDefinition(processDefinitionId: Long): List<Pair<String, String>> = transaction {
         ProcessDefinitionTable
