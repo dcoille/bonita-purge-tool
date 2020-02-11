@@ -8,7 +8,7 @@ class DatabaseResourcesConfigurator {
         String dbVendor = System.getProperty("db.vendor", "postgres")
         DatabasePluginExtension extension = project.extensions.getByType(DatabasePluginExtension.class)
         extension.dbvendor = dbVendor
-        project.logger.quiet("no system property db.url set, using docker to test on $dbVendor")
+        project.logger.info("no system property db.url set, using docker to test on $dbVendor")
         DockerDatabaseContainerTasksCreator.createTasks(project)
     }
 

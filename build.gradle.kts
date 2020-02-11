@@ -12,13 +12,6 @@ plugins {
 apply(plugin = "io.spring.dependency-management")
 apply(plugin = "maven-publish")
 
-repositories {
-    mavenLocal()
-    maven { setUrl("http://artifacts.rd.lan/maven/all") }
-    // fallback solution in case the internal repository is not available
-    jcenter()
-}
-
 tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "1.8"
 }
@@ -39,7 +32,7 @@ springBoot {
                 include("*")
             }
         }
-        baseName = project.name
+        distributionBaseName.set(project.name)
     }
 }
 tasks["distZip"].enabled = false
