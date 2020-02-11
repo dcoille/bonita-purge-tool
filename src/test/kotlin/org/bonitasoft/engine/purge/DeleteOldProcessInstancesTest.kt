@@ -1,5 +1,6 @@
 package org.bonitasoft.engine.purge
 
+import ch.qos.logback.classic.Level
 import io.mockk.every
 import io.mockk.impl.annotations.SpyK
 import io.mockk.junit5.MockKExtension
@@ -94,21 +95,19 @@ internal class DeleteOldProcessInstancesTest {
     }
 
     @Test
-    fun `should log and exit if no process instance exists`() {
+    fun `should log warning and continue if no process instance exists`() {
         TestLoggerAppender.clear()
 
         every { deleteOldProcessInstances.checkTenantIdValidity(1000L) } returns 1000L
-        every { deleteOldProcessInstances.getProcessDefinition(999888777L) } returns listOf(Pair("process", "1.1"))
+        every { deleteOldProcessInstances.getProcessDefinition(999888777L) } returns listOf(Pair("MyProcess", "1.1"))
         every { deleteOldProcessInstances.countArchivedProcessInstances(999888777L) } returns 0
-        every { deleteOldProcessInstances.quitWithCode(any()) } throws RuntimeException("For test only")
+        every { deleteOldProcessInstances.doExecutePurge(any(), any(), any())} returns Unit
 
-        assertThrows<RuntimeException> {
-            deleteOldProcessInstances.execute(999888777L, 165000000000L, 1000L)
+        deleteOldProcessInstances.execute(999888777L, 165000000000L, 1000L)
+
+        assertThat(TestLoggerAppender.allLogs()).anyMatch {
+            it.level == Level.WARN && it.message.contains("""No finished process instance exists for process 'MyProcess' in version '1.1'.
+            |Continuing will purge all archived orphan elements that may remain from a previous interrupted purge execution.""".trimMargin())
         }
-
-        verify { deleteOldProcessInstances.quitWithCode(any()) }
-
-
-        assertThat(TestLoggerAppender.allLogs()).anyMatch { it.message.contains("No finished process instance exists for process 'process' in version '1.1") }
     }
 }

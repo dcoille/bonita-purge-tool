@@ -40,9 +40,10 @@ class DeleteOldProcessInstances(
                 quitWithCode(1)
             }
             countArchivedProcessInstances(processDefinitionId) == 0 -> {
-                logger.info("No finished process instance exists for process " +
-                        "'${processDefinition[0].first}' in version '${processDefinition[0].second}'")
-                quitWithCode(1)
+                logger.warn("""
+                    |No finished process instance exists for process '${processDefinition[0].first}' in version '${processDefinition[0].second}'.
+                    |Continuing will purge all archived orphan elements that may remain from a previous interrupted purge execution.
+                    """.trimMargin())
             }
             else -> {
                 logger.info("Will purge all archived process instances and their elements for process " +
@@ -59,22 +60,26 @@ class DeleteOldProcessInstances(
             }
         }
         logger.info("Starting archive process instance purge....")
+        doExecutePurge(processDefinitionId, date, validTenantId)
+    }
+
+    fun doExecutePurge(processDefinitionId: Long, date: Long, validTenantId: Long) {
         val nbRows = jdbcTemplate.update("""
-DELETE FROM ARCH_PROCESS_INSTANCE A WHERE exists (
-SELECT rootprocessinstanceid
-FROM ARCH_PROCESS_INSTANCE B
-WHERE B.ROOTPROCESSINSTANCEID = B.SOURCEOBJECTID
-AND A.ROOTPROCESSINSTANCEID = B.ROOTPROCESSINSTANCEID
-AND PROCESSDEFINITIONID = ?
-and STATEID = 6
-AND ENDDATE <= ?) AND tenantId = ?""", processDefinitionId, date, validTenantId)
+    DELETE FROM ARCH_PROCESS_INSTANCE A WHERE exists (
+    SELECT rootprocessinstanceid
+    FROM ARCH_PROCESS_INSTANCE B
+    WHERE B.ROOTPROCESSINSTANCEID = B.SOURCEOBJECTID
+    AND A.ROOTPROCESSINSTANCEID = B.ROOTPROCESSINSTANCEID
+    AND PROCESSDEFINITIONID = ?
+    and STATEID = 6
+    AND ENDDATE <= ?) AND tenantId = ?""", processDefinitionId, date, validTenantId)
         logger.info("Deleted $nbRows lines from table ARCH_PROCESS_INSTANCE...")
 
         val statements: MutableList<String> = mutableListOf()
         ScriptUtils.splitSqlScript(this::class.java.getResource("/delete_scenario.sql").readText(Charsets.UTF_8), ";", statements)
         statements.forEach { statement ->
             run {
-                logger.info("Executing SQL: $statement")
+                logger.debug("Executing SQL: $statement")
                 var nbRowsDeleted = 0
                 val executionTime = measureTimeMillis {
                     nbRowsDeleted = jdbcTemplate.update(statement, validTenantId, validTenantId)
@@ -85,8 +90,7 @@ AND ENDDATE <= ?) AND tenantId = ?""", processDefinitionId, date, validTenantId)
     }
 
     fun checkTenantIdValidity(tenantId: Long?): Long {
-        val tenants =
-                getAllTenants()
+        val tenants = getAllTenants()
         if (tenantId == null) {
             when {
                 tenants.size > 1 -> {
@@ -112,9 +116,10 @@ AND ENDDATE <= ?) AND tenantId = ?""", processDefinitionId, date, validTenantId)
     fun quitWithCode(i: Int): Nothing = exitProcess(i)
 
     fun getAllTenants() = transaction {
-            Tenant.slice(Tenant.id, Tenant.name)
-                    .selectAll()
-                    .map { it[Tenant.id] to it[Tenant.name] }.toMap() }
+        Tenant.slice(Tenant.id, Tenant.name)
+                .selectAll()
+                .map { it[Tenant.id] to it[Tenant.name] }.toMap()
+    }
 
     fun getProcessDefinition(processDefinitionId: Long): List<Pair<String, String>> = transaction {
         ProcessDefinitionTable

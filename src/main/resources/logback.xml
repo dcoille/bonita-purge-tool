@@ -14,7 +14,7 @@
         </encoder>
     </appender>
 
-    <logger name="org.bonitasoft" level="INFO"/>
+    <logger name="org.bonitasoft" level="DEBUG"/>
 
     <root level="ERROR">
         <appender-ref ref="STDOUT"/>
