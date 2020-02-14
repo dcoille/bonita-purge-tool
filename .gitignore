@@ -35,3 +35,4 @@ build
 *.mine
 .DS_Store
 classes
+.gradletasknamecache

@@ -2,6 +2,7 @@ import org.bonitasoft.gradle.plugin.db.DatabasePluginExtension
 import org.bonitasoft.gradle.plugin.db.DatabaseResourcesConfigurator
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.springframework.boot.gradle.tasks.application.CreateBootStartScripts
+import org.springframework.boot.gradle.tasks.run.BootRun
 
 plugins {
     kotlin("jvm") version "1.3.40"
@@ -37,6 +38,12 @@ springBoot {
 }
 tasks["distZip"].enabled = false
 tasks["distTar"].enabled = false
+
+tasks.getByName<BootRun>("bootRun") {
+    if (project.hasProperty("args")) {
+        args = project.property ("args").toString().split(',')
+    }
+}
 
 artifacts {
     add("distributionZip", tasks["bootDistZip"])
