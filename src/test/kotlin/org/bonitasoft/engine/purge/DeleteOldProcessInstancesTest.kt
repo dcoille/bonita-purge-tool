@@ -101,7 +101,8 @@ internal class DeleteOldProcessInstancesTest {
         every { deleteOldProcessInstances.checkTenantIdValidity(1000L) } returns 1000L
         every { deleteOldProcessInstances.getProcessDefinition(999888777L) } returns listOf(Pair("MyProcess", "1.1"))
         every { deleteOldProcessInstances.countArchivedProcessInstances(999888777L) } returns 0
-        every { deleteOldProcessInstances.doExecutePurge(any(), any(), any())} returns Unit
+        every { deleteOldProcessInstances.doExecutePurge(any(), any(), any()) } returns Unit
+        every { deleteOldProcessInstances.purgeArchContractDataTableIfExists(any()) } returns Unit
 
         deleteOldProcessInstances.execute(999888777L, 165000000000L, 1000L)
 

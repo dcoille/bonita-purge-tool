@@ -1,0 +1,23 @@
+-----------------------
+--   REMOVE ORPHANS  --
+-----------------------
+
+-- delete from ARCH_CONTRACT_DATA_BACKUP if exists
+
+DELETE
+FROM ARCH_CONTRACT_DATA_BACKUP a
+WHERE a.KIND = 'PROCESS'
+  AND a.tenantId = ?
+  AND NOT EXISTS (
+    SELECT ID FROM ARCH_PROCESS_INSTANCE b
+    WHERE a.SCOPEID = b.ROOTPROCESSINSTANCEID
+  AND b.tenantId = ?);
+
+DELETE
+FROM ARCH_CONTRACT_DATA_BACKUP a
+WHERE a.KIND = 'TASK'
+  AND a.tenantId = ?
+  AND NOT EXISTS (
+    SELECT ID FROM ARCH_FLOWNODE_INSTANCE b
+    WHERE a.SCOPEID = b.SOURCEOBJECTID
+  AND b.tenantId = ? );

@@ -13,14 +13,14 @@ private val logger = LoggerFactory.getLogger(Application::class.java)
 fun main(args: Array<String>) {
 
     val context = SpringApplication.run(Application::class.java, *args)
-    val bean = context.getBean(DeleteOldProcessInstances::class.java)
+    val processInstancePurge = context.getBean(DeleteOldProcessInstances::class.java)
     // tenantId, parameter number 3, is optional:
     val tenantId: Long? = if (args.size > 2) args[2].toLong() else null
     if (args.size < 2) {
         usage()
         exitProcess(-1)
     }
-    bean.execute(args[0].toLong(), args[1].toLong(), tenantId) // FIXME check tenantID set if platform is multi-tenant
+    processInstancePurge.execute(args[0].toLong(), args[1].toLong(), tenantId) // FIXME check tenantID set if platform is multi-tenant
     context.close()
     exitProcess(0)
 }

@@ -2,9 +2,11 @@
 
 package org.bonitasoft.engine.purge
 
+import org.bonitasoft.engine.purge.tables.ArchContractDataBackupTable
 import org.bonitasoft.engine.purge.tables.ArchProcessInstance
 import org.bonitasoft.engine.purge.tables.ProcessDefinitionTable
 import org.bonitasoft.engine.purge.tables.Tenant
+import org.jetbrains.exposed.sql.exists
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -61,6 +63,8 @@ class DeleteOldProcessInstances(
         }
         logger.info("Starting archive process instance purge....")
         doExecutePurge(processDefinitionId, date, validTenantId)
+        purgeArchContractDataTableIfExists(validTenantId)
+        logger.info("Archive process instance purge completed.")
     }
 
     fun doExecutePurge(processDefinitionId: Long, date: Long, validTenantId: Long) {
@@ -73,10 +77,24 @@ class DeleteOldProcessInstances(
     AND PROCESSDEFINITIONID = ?
     and STATEID = 6
     AND ENDDATE <= ?) AND tenantId = ?""", processDefinitionId, date, validTenantId)
-        logger.info("Deleted $nbRows lines from table ARCH_PROCESS_INSTANCE...")
+        logger.info("Deleted $nbRows rows from table ARCH_PROCESS_INSTANCE...")
 
+        executeSQLScript("/delete_scenario.sql", validTenantId)
+    }
+
+    fun purgeArchContractDataTableIfExists(validTenantId: Long) {
+        val archContractDataBackupTableExists = transaction {
+            ArchContractDataBackupTable.exists()
+        }
+        if (archContractDataBackupTableExists) {
+            logger.info("Detected presence of table ARCH_CONTRACT_DATA_BACKUP. Purging it as well.")
+            executeSQLScript("/optional_backup_table_purge.sql", validTenantId)
+        }
+    }
+
+    private fun executeSQLScript(sqlScriptFile: String, validTenantId: Long) {
         val statements: MutableList<String> = mutableListOf()
-        ScriptUtils.splitSqlScript(this::class.java.getResource("/delete_scenario.sql").readText(Charsets.UTF_8), ";", statements)
+        ScriptUtils.splitSqlScript(this::class.java.getResource(sqlScriptFile).readText(Charsets.UTF_8), ";", statements)
         statements.forEach { statement ->
             run {
                 logger.debug("Executing SQL: $statement")
@@ -84,7 +102,9 @@ class DeleteOldProcessInstances(
                 val executionTime = measureTimeMillis {
                     nbRowsDeleted = jdbcTemplate.update(statement, validTenantId, validTenantId)
                 }
-                logger.info("$nbRowsDeleted rows deleted in $executionTime ms")
+                val startIndex = statement.indexOf("FROM ") + 5 // FROM must be written in capital letters !
+                val tableName = statement.substring(startIndex, statement.indexOf(" ", startIndex))
+                logger.info("Deleted $nbRowsDeleted rows from table $tableName in $executionTime ms")
             }
         }
     }
@@ -97,7 +117,7 @@ class DeleteOldProcessInstances(
                     logger.error("Multiple tenants exist ${tenants.entries}. Please specify tenant ID as 3rd parameter")
                     quitWithCode(1)
                 }
-                tenants.isEmpty() -> { // 0 tenants:
+                tenants.isEmpty() -> { // 0 tenant:
                     logger.error("No tenant exists. Platform invalid")
                     quitWithCode(1)
                 }
@@ -112,8 +132,6 @@ class DeleteOldProcessInstances(
             }
         }
     }
-
-    fun quitWithCode(i: Int): Nothing = exitProcess(i)
 
     fun getAllTenants() = transaction {
         Tenant.slice(Tenant.id, Tenant.name)
@@ -136,5 +154,7 @@ class DeleteOldProcessInstances(
                 }
                 .count()
     }
+
+    fun quitWithCode(i: Int): Nothing = exitProcess(i)
 
 }
