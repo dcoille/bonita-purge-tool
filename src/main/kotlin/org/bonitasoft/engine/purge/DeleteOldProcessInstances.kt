@@ -64,7 +64,7 @@ class DeleteOldProcessInstances(
         logger.info("Starting archive process instance purge....")
         doExecutePurge(processDefinitionId, date, validTenantId)
         purgeArchContractDataTableIfExists(validTenantId)
-        logger.info("Archive process instance purge completed.")
+        logPurgeFinishedAndWarn()
     }
 
     fun doExecutePurge(processDefinitionId: Long, date: Long, validTenantId: Long) {
@@ -153,6 +153,12 @@ class DeleteOldProcessInstances(
                     ArchProcessInstance.definitionId eq processDefinitionId
                 }
                 .count()
+    }
+
+    private fun logPurgeFinishedAndWarn() {
+        logger.info("Archive process instance purge completed.")
+        logger.info("Some of the deleted elements may still appear in Bonita Portal for a short while.")
+        logger.info("If you try to access them you will get a not found error. This is the expected behaviour.")
     }
 
     fun quitWithCode(i: Int): Nothing = exitProcess(i)
