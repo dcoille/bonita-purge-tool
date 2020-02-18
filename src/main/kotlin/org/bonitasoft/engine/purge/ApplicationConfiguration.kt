@@ -15,7 +15,7 @@ import javax.sql.DataSource
 @EnableScheduling
 open class ApplicationConfiguration {
 
-    val logger = LoggerFactory.getLogger(Application::class.java)
+    private val logger = LoggerFactory.getLogger(Application::class.java)
 
     @Bean
     open fun someBean(datasource: DataSource): Database {

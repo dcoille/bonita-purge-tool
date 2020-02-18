@@ -1,3 +1,60 @@
+CREATE TABLE tenant (
+    id INT8 NOT NULL,
+--     created INT8 NOT NULL,
+--     createdBy VARCHAR(50) NOT NULL,
+    description VARCHAR(255),
+--     defaultTenant BOOLEAN NOT NULL,
+    iconname VARCHAR(50),
+    iconpath VARCHAR(255),
+    name VARCHAR(50) NOT NULL,
+--     status VARCHAR(15) NOT NULL,
+    PRIMARY KEY (id)
+);
+CREATE TABLE process_definition (
+    tenantid INT8 NOT NULL,
+    id INT8 NOT NULL,
+    processId INT8 NOT NULL,
+    name VARCHAR(150) NOT NULL,
+    version VARCHAR(50) NOT NULL,
+--     description VARCHAR(255),
+--     deploymentDate INT8 NOT NULL,
+--     deployedBy INT8 NOT NULL,
+--     activationState VARCHAR(30) NOT NULL,
+--     configurationState VARCHAR(30) NOT NULL,
+--     displayName VARCHAR(75),
+--     displayDescription VARCHAR(255),
+    lastUpdateDate INT8,
+    categoryId INT8,
+    iconPath VARCHAR(255),
+--     content_tenantid INT8 NOT NULL,
+--     content_id INT8 NOT NULL,
+    PRIMARY KEY (tenantid, id),
+    UNIQUE (tenantid, name)
+);
+
+CREATE TABLE arch_process_instance (
+    tenantid INT8 NOT NULL,
+    id INT8 NOT NULL,
+    name VARCHAR(75) NOT NULL,
+    processDefinitionId INT8 NOT NULL,
+    description VARCHAR(255),
+--   startDate INT8 NOT NULL,
+--   startedBy INT8 NOT NULL,
+--   startedBySubstitute INT8 NOT NULL,
+    endDate INT8 NOT NULL,
+--   archiveDate INT8 NOT NULL,
+    stateId INT NOT NULL,
+--   lastUpdate INT8 NOT NULL,
+    rootProcessInstanceId INT8,
+    callerId INT8,
+    sourceObjectId INT8 NOT NULL,
+   stringIndex1 VARCHAR(255),
+   stringIndex2 VARCHAR(255),
+   stringIndex3 VARCHAR(255),
+   stringIndex4 VARCHAR(255),
+   stringIndex5 VARCHAR(255),
+   PRIMARY KEY (tenantid, id)
+);
 CREATE TABLE arch_contract_data (
   tenantid INT8 NOT NULL,
   id INT8 NOT NULL,
@@ -41,33 +98,6 @@ CREATE TABLE arch_document_mapping (
   PRIMARY KEY (tenantid, ID)
 );
 CREATE INDEX idx_a_doc_mp_pr_id ON arch_document_mapping (processinstanceid, tenantid);
-
-CREATE TABLE arch_process_instance (
-  tenantid INT8 NOT NULL,
-  id INT8 NOT NULL,
-  name VARCHAR(75) NOT NULL,
-  processDefinitionId INT8 NOT NULL,
-  description VARCHAR(255),
-  startDate INT8 NOT NULL,
-  startedBy INT8 NOT NULL,
-  startedBySubstitute INT8 NOT NULL,
-  endDate INT8 NOT NULL,
-  archiveDate INT8 NOT NULL,
-  stateId INT NOT NULL,
-  lastUpdate INT8 NOT NULL,
-  rootProcessInstanceId INT8,
-  callerId INT8,
-  sourceObjectId INT8 NOT NULL,
-  stringIndex1 VARCHAR(255),
-  stringIndex2 VARCHAR(255),
-  stringIndex3 VARCHAR(255),
-  stringIndex4 VARCHAR(255),
-  stringIndex5 VARCHAR(255),
-  PRIMARY KEY (tenantid, id)
-);
-CREATE INDEX idx1_arch_process_instance ON arch_process_instance (tenantId, sourceObjectId, rootProcessInstanceId, callerId);
-CREATE INDEX idx2_arch_process_instance ON arch_process_instance (tenantId, processDefinitionId, archiveDate);
-CREATE INDEX idx3_arch_process_instance ON arch_process_instance (tenantId, sourceObjectId, callerId, stateId);
 
 CREATE TABLE arch_flownode_instance (
   tenantid INT8 NOT NULL,

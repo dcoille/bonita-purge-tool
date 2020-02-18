@@ -41,7 +41,7 @@ tasks["distTar"].enabled = false
 
 tasks.getByName<BootRun>("bootRun") {
     if (project.hasProperty("args")) {
-        args = project.property ("args").toString().split(',')
+        args = project.property("args").toString().split(',')
     }
 }
 
@@ -75,7 +75,6 @@ dependencies {
     implementation("org.postgresql:postgresql:42.2.5")
     implementation("com.microsoft.sqlserver:mssql-jdbc:7.2.1.jre8")
 
-
     testImplementation("org.springframework.boot", "spring-boot-starter-test")
     testImplementation("org.apache.commons", "commons-csv", "1.6")
     testImplementation(kotlin("test-junit5"))
@@ -97,25 +96,26 @@ project.afterEvaluate {
     DatabaseResourcesConfigurator.finalizeTasksDependenciesOnDatabaseResources(project)
 }
 
-project.task("integrationTest", Test::class) {
+
+// Configure INTEGRATION TESTS:
+val integrationTest = task<Test>("integrationTest") {
+    description = "Runs integration tests on a real database."
     group = "Verification"
-    description = "Run integration tests."
     testClassesDirs = project.sourceSets.getByName("test").output.classesDirs
     classpath = project.sourceSets.getByName("test").runtimeClasspath
-    reports.html.destination = project.file("${project.buildDir}/reports/integrationTests")
-
+    reports.html.destination = project.file("${project.buildDir}/reports/integrationTest")
+    include("**/*IT.class")
+    shouldRunAfter("test")
     doFirst {
         val configuration = project.extensions.getByType(DatabasePluginExtension::class)
-
         val mapOf = mapOf(
                 "spring.datasource.url" to configuration.dburl,
                 "spring.datasource.username" to configuration.dbuser,
                 "spring.datasource.password" to configuration.dbpassword,
                 "spring.datasource.driver-class-name" to configuration.dbdriverClass
         )
-        logger.quiet("Using database configuration $mapOf")
+        logger.quiet("Using database configuration: $mapOf")
         systemProperties = mapOf
-
     }
-
 }
+tasks.check { dependsOn(integrationTest) }

@@ -1,41 +1,43 @@
 package org.bonitasoft.engine.purge
 
-import io.mockk.impl.annotations.SpyK
-import io.mockk.junit5.MockKExtension
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.junit.Test
-import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.api.Test
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.jdbc.core.JdbcTemplate
 import kotlin.test.BeforeTest
 
 /**
  * @author Emmanuel Duchastenier
  */
-@ExtendWith(MockKExtension::class)
-internal class DeleteOldProcessInstancesIT {
+@SpringBootTest
+class DeleteOldProcessInstancesIT {
+
+    @Autowired
+    lateinit var deleteOldProcessInstances: DeleteOldProcessInstances
 
     @Value("\${spring.datasource.driver-class-name:h2}")
     lateinit var driverClassName: String
+
     @Autowired
     lateinit var jdbcTemplate: JdbcTemplate
-    @SpyK
-    private var deleteOldProcessInstances = DeleteOldProcessInstances(true, "dummy url", jdbcTemplate)
 
-    var ArchiveRepository = ArchiveRepository()
+    private var archiveRepository = ArchiveRepository()
 
-    val logger = LoggerFactory.getLogger(DeleteOldProcessInstancesIT::class.java)
+    private val logger: Logger = LoggerFactory.getLogger(DeleteOldProcessInstancesIT::class.java)
 
 
     @BeforeTest
     fun before() {
         transaction {
-            logger.info("Drop tables")
+            logger.info("Drop test tables")
             SchemaUtils.drop()
         }
+        logger.debug("jdbcTemplate connection url: ${jdbcTemplate.dataSource.connection.metaData.url}")
         transaction {
             when {
                 driverClassName.contains("postgresql") -> {
@@ -51,6 +53,7 @@ internal class DeleteOldProcessInstancesIT {
                     createTablesFromScript("/sqlserver.sql")
                 }
             }
+            archiveRepository.insert_data_before_purge()
         }
     }
 
@@ -63,12 +66,11 @@ internal class DeleteOldProcessInstancesIT {
     }
 
     @Test
-    fun deleteOldProcessInstances_should_delete_the_records_of_a_process_before_a_timestamp_and_leave_records_of_other_processes_and_records_after_the_timestamp() {
-
-        ArchiveRepository.insert_data_before_purge()
-        deleteOldProcessInstances.execute(12,12,12)
-
-
+    fun `should delete the records of a process before a timestamp and leave records of other processes and records after the timestamp`() {
+        deleteOldProcessInstances.execute(8663749350673053802, 1000000 /*old date*/, null)
+//        transaction {
+//            Arch
+//        }
     }
 
 }

@@ -4,7 +4,7 @@ package org.bonitasoft.engine.purge
 
 import org.bonitasoft.engine.purge.tables.ArchContractDataBackupTable
 import org.bonitasoft.engine.purge.tables.ArchProcessInstance
-import org.bonitasoft.engine.purge.tables.ProcessDefinitionTable
+import org.bonitasoft.engine.purge.tables.ProcessDefinition
 import org.bonitasoft.engine.purge.tables.Tenant
 import org.jetbrains.exposed.sql.exists
 import org.jetbrains.exposed.sql.select
@@ -22,8 +22,8 @@ import kotlin.system.measureTimeMillis
 
 @Service
 class DeleteOldProcessInstances(
-        @Value("\${org.bonitasoft.engine.migration.skip_confirmation:true}") val skipConfirmation: Boolean,
-        @Value("\${spring.datasource.url:#{null}}") val databaseUrl: String?,
+        @Value("\${org.bonitasoft.engine.migration.skip_confirmation:true}") private val skipConfirmation: Boolean,
+        @Value("\${spring.datasource.url:#{null}}") private val databaseUrl: String?,
         private val jdbcTemplate: JdbcTemplate) {
 
     private val logger = LoggerFactory.getLogger(DeleteOldProcessInstances::class.java)
@@ -67,7 +67,7 @@ class DeleteOldProcessInstances(
         logPurgeFinishedAndWarn()
     }
 
-    fun doExecutePurge(processDefinitionId: Long, date: Long, validTenantId: Long) {
+    internal fun doExecutePurge(processDefinitionId: Long, date: Long, validTenantId: Long) {
         val nbRows = jdbcTemplate.update("""
     DELETE FROM ARCH_PROCESS_INSTANCE A WHERE exists (
     SELECT rootprocessinstanceid
@@ -82,7 +82,7 @@ class DeleteOldProcessInstances(
         executeSQLScript("/delete_scenario.sql", validTenantId)
     }
 
-    fun purgeArchContractDataTableIfExists(validTenantId: Long) {
+    internal fun purgeArchContractDataTableIfExists(validTenantId: Long) {
         val archContractDataBackupTableExists = transaction {
             ArchContractDataBackupTable.exists()
         }
@@ -109,45 +109,43 @@ class DeleteOldProcessInstances(
         }
     }
 
-    fun checkTenantIdValidity(tenantId: Long?): Long {
+    internal fun checkTenantIdValidity(tenantId: Long?): Long {
         val tenants = getAllTenants()
-        if (tenantId == null) {
-            when {
-                tenants.size > 1 -> {
-                    logger.error("Multiple tenants exist ${tenants.entries}. Please specify tenant ID as 3rd parameter")
-                    quitWithCode(1)
-                }
-                tenants.isEmpty() -> { // 0 tenant:
-                    logger.error("No tenant exists. Platform invalid")
-                    quitWithCode(1)
-                }
-                else -> return tenants.keys.first()
+        if (tenants.isEmpty()) { // 0 tenant:
+            logger.error("No tenant exists. Platform invalid")
+            quitWithCode(1)
+        }
+        return if (tenantId == null) {
+            if (tenants.size > 1) {
+                logger.error("Multiple tenants exist ${tenants.entries}. Please specify tenant ID as 3rd parameter")
+                quitWithCode(1)
             }
+            else tenants.keys.first()
         } else {
             if (!tenants.containsKey(tenantId)) {
                 logger.error("Tenant with ID $tenantId does not exist. Available tenants are ${tenants.entries}")
                 quitWithCode(1)
             } else {
-                return tenantId
+                tenantId
             }
         }
     }
 
-    fun getAllTenants() = transaction {
+    internal fun getAllTenants() = transaction {
         Tenant.slice(Tenant.id, Tenant.name)
                 .selectAll()
                 .map { it[Tenant.id] to it[Tenant.name] }.toMap()
     }
 
-    fun getProcessDefinition(processDefinitionId: Long): List<Pair<String, String>> = transaction {
-        ProcessDefinitionTable
+    internal fun getProcessDefinition(processDefinitionId: Long): List<Pair<String, String>> = transaction {
+        ProcessDefinition
                 .select {
-                    ProcessDefinitionTable.id eq processDefinitionId
+                    ProcessDefinition.processId eq processDefinitionId
                 }
-                .map { it[ProcessDefinitionTable.name] to it[ProcessDefinitionTable.version] }
+                .map { it[ProcessDefinition.name] to it[ProcessDefinition.version] }
     }
 
-    fun countArchivedProcessInstances(processDefinitionId: Long): Int = transaction {
+    internal fun countArchivedProcessInstances(processDefinitionId: Long): Int = transaction {
         ArchProcessInstance
                 .select {
                     ArchProcessInstance.definitionId eq processDefinitionId
@@ -161,6 +159,6 @@ class DeleteOldProcessInstances(
         logger.info("If you try to access them you will get a not found error. This is the expected behaviour.")
     }
 
-    fun quitWithCode(i: Int): Nothing = exitProcess(i)
+    internal fun quitWithCode(i: Int): Nothing = exitProcess(i)
 
 }

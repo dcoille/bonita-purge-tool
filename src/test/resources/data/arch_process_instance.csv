@@ -1,4 +1,3 @@
-"tenantid","id","name","processdefinitionid","description","startdate","startedby","startedbysubstitute","enddate","archivedate","stateid","lastupdate","rootprocessinstanceid","callerid","sourceobjectid","stringindex1","stringindex2","stringindex3","stringindex4","stringindex5"
 "1","8017899","RFS_n_ACT_MOCKED","6547377706517145159","","1537635963496","4","4","0","1537635967264","1","1537635963496","2672612","-1","2672612",,,,,
 "1","8017900","RFS_n_ACT_MOCKED","6547377706517145159","","1537635963496","4","4","1537635967264","1537635967264","6","1537635967264","2672612","-1","2672612",,,,,
 "1","8017939","subThrowMessage","8663749350673053802","","1537635967598","0","0","0","1537635967601","0","1537635967598","2672647","22750482","2672651",,,,,
