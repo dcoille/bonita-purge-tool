@@ -1,10 +1,16 @@
 package org.bonitasoft.engine.purge
 
+import org.apache.commons.csv.CSVFormat
 import org.apache.commons.csv.CSVRecord
 import org.bonitasoft.engine.purge.tables.*
+import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.statements.InsertStatement
+import org.slf4j.LoggerFactory
+import java.io.InputStreamReader
 
 class ArchiveRepository {
+
+    val logger = LoggerFactory.getLogger(ArchiveRepository::class.java)
 
     fun createArchContractData(it: InsertStatement<Number>, record: CSVRecord) {
         it[ArchContractDataTable.tenantId] = record.get(0).toLong()
@@ -33,7 +39,7 @@ class ArchiveRepository {
         it[ArchDocumentMappingTable.archiveDate] = record.get(9).toLong()
     }
 
-    fun createArchProcessInstanceTable(it: InsertStatement<Number>, record: CSVRecord) {
+     fun createArchProcessInstanceTable(it: InsertStatement<Number>, record: CSVRecord) {
         it[ArchProcessInstanceTable.tenantId] = record.get(0).toLong()
         it[ArchProcessInstanceTable.id] = record.get(1).toLong()
         it[ArchProcessInstanceTable.name] = record.get(2)
@@ -74,5 +80,18 @@ class ArchiveRepository {
         it[ArchDataInstanceTable.archiveDate] = record.get(19).toLong()
     }
 
+    fun insert_data_before_purge() {
+        logger.info("create tables using scripts")
+        read("/arch_process_instance.csv").forEach { entry ->
+            ArchProcessInstanceTable.insert {
+                createArchProcessInstanceTable(it, entry)
+            }
+        }
+    }
+
+    private fun read(fileName: String): List<CSVRecord> {
+        var content = DeleteOldProcessInstancesIT::class.java.getResourceAsStream("/$fileName")
+        return CSVFormat.DEFAULT.parse(InputStreamReader(content)).toList()
+    }
 
 }

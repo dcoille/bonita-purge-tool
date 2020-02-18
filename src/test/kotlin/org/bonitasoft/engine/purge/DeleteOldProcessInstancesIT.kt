@@ -2,7 +2,6 @@ package org.bonitasoft.engine.purge
 
 import io.mockk.impl.annotations.SpyK
 import io.mockk.junit5.MockKExtension
-import io.mockk.mockk
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.Test
@@ -25,6 +24,8 @@ internal class DeleteOldProcessInstancesIT {
     lateinit var jdbcTemplate: JdbcTemplate
     @SpyK
     private var deleteOldProcessInstances = DeleteOldProcessInstances(true, "dummy url", jdbcTemplate)
+
+    var ArchiveRepository = ArchiveRepository()
 
     val logger = LoggerFactory.getLogger(DeleteOldProcessInstancesIT::class.java)
 
@@ -50,9 +51,9 @@ internal class DeleteOldProcessInstancesIT {
                     createTablesFromScript("/sqlserver.sql")
                 }
             }
-
         }
     }
+
     private fun createTablesFromScript(fileName: String) {
         logger.info("create tables using script $fileName")
         val content = DeleteOldProcessInstancesIT::class.java.getResource(fileName).readText()
@@ -61,13 +62,10 @@ internal class DeleteOldProcessInstancesIT {
         }
     }
 
-
-
     @Test
-    fun deleteOldProcessInstances_should_delete_the_records_of_a_process_before_a_timestamp_and_leave_records_of_other_processes_and_records_after_the_timestamp(){
+    fun deleteOldProcessInstances_should_delete_the_records_of_a_process_before_a_timestamp_and_leave_records_of_other_processes_and_records_after_the_timestamp() {
 
-
-
+        ArchiveRepository.insert_data_before_purge()
         deleteOldProcessInstances.execute(12,12,12)
 
 
