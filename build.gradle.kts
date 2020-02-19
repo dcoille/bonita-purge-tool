@@ -82,7 +82,7 @@ dependencies {
     testImplementation("org.assertj:assertj-core:3.11.1")
     testImplementation("io.mockk:mockk:1.9.3")
 
-    testRuntimeOnly("com.oracle:ojdbc:8.12.2.0.1")
+    testRuntimeOnly("com.oracle.ojdbc:ojdbc8:19.3.0.0")
 
 }
 tasks.withType<Test> {
@@ -96,6 +96,9 @@ project.afterEvaluate {
     DatabaseResourcesConfigurator.finalizeTasksDependenciesOnDatabaseResources(project)
 }
 
+tasks.getByName<Test>("test") {
+    include("**/*Test.class")
+}
 
 // Configure INTEGRATION TESTS:
 val integrationTest = task<Test>("integrationTest") {
@@ -105,7 +108,7 @@ val integrationTest = task<Test>("integrationTest") {
     classpath = project.sourceSets.getByName("test").runtimeClasspath
     reports.html.destination = project.file("${project.buildDir}/reports/integrationTest")
     include("**/*IT.class")
-    shouldRunAfter("test")
+//    shouldRunAfter("test")
     doFirst {
         val configuration = project.extensions.getByType(DatabasePluginExtension::class)
         val mapOf = mapOf(
@@ -118,4 +121,4 @@ val integrationTest = task<Test>("integrationTest") {
         systemProperties = mapOf
     }
 }
-tasks.check { dependsOn(integrationTest) }
+//tasks.check { dependsOn(integrationTest) }
