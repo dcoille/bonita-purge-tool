@@ -196,11 +196,11 @@ AND b.tenantId = ? );
 -- ARCH_MULTI_BIZ_DATA
 -- Depends on ARCH_REF_BIZ_DATA_INST (Handled before)
 
-DELETE FROM ARCH_MULTI_BIZ_DATA a WHERE a.tenantId = ?
-AND NOT EXISTS (
-SELECT ID FROM ARCH_REF_BIZ_DATA_INST b
-WHERE a.ID = b.ID
-AND b.tenantId = ?  );
+-- DELETE FROM ARCH_MULTI_BIZ_DATA a WHERE a.tenantId = ?
+-- AND NOT EXISTS (
+-- SELECT ID FROM ARCH_REF_BIZ_DATA_INST b
+-- WHERE a.ID = b.ID
+-- AND b.tenantId = ?  );
 
 -- SELECT a.*
 -- FROM ARCH_MULTI_BIZ_DATA a
