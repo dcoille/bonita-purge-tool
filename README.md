@@ -1,5 +1,7 @@
 # bonita-purge-tool
 
+[![Build](https://github.com/bonitasoft/bonita-purge-tool/workflows/Build%20&%20test%20Bonita%20Purge%20Tool/badge.svg)](https://github.com/bonitasoft/bonita-purge-tool/actions)
+
 This tool provides the capability to purge finished (archived) process instances from [Bonita](https://documentation.bonitasoft.com) Runtime environment.
 By default, all archives are preserved forever in Bonita runtime, but if your functional context allows you to lose old unused data, use this tool to cleanup your Bonita database.
 
