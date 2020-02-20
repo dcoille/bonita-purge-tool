@@ -6,10 +6,10 @@ This tool provides the capability to purge finished (archived) process instances
 By default, all archives are preserved forever in Bonita runtime, but if your functional context allows you to lose old unused data, use this tool to cleanup your Bonita database.
 
 ## Build this tool
-Bonita Purge Tool uses gradle to build.
+Bonita Purge Tool uses gradle & spring boot to build. Before building, it's recommended to modify the application.properties file located in src/main/resources to enter your database connection information.
 
 Make sure you have Java 8+ installed and simply run:
-    ./gradlew build
+    ./gradlew bootJar
     
 ### Run the tool
 
