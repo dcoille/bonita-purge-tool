@@ -56,11 +56,14 @@ class ArchiveRepository {
         it[ArchFlowNodeinstanceTable.id] = record.get(1).toLong()
         it[ArchFlowNodeinstanceTable.flownodeDefinitionId] = record.get(2).toLong()
         it[ArchFlowNodeinstanceTable.archiveDate] = record.get(5).toLong()
+        it[ArchFlowNodeinstanceTable.rootContainerId] = record.get(6).toLong()
     }
 
     fun insertArchConnectorInstance(it: InsertStatement<Number>, record: CSVRecord) {
         it[ArchConnectorInstanceTable.tenantId] = record.get(0).toLong()
         it[ArchConnectorInstanceTable.id] = record.get(1).toLong()
+        it[ArchConnectorInstanceTable.containerId] = record.get(2).toLong()
+        it[ArchConnectorInstanceTable.containerType] = record.get(3)
         it[ArchConnectorInstanceTable.version] = record.get(5)
         it[ArchConnectorInstanceTable.name] = record.get(6)
         it[ArchConnectorInstanceTable.archiveDate] = record.get(10).toLong()
@@ -69,11 +72,13 @@ class ArchiveRepository {
     fun insertArchRefBizDataInst(it: InsertStatement<Number>, record: CSVRecord) {
         it[ArchRefBizDataInstTable.tenantId] = record.get(0).toLong()
         it[ArchRefBizDataInstTable.id] = record.get(1).toLong()
+        it[ArchRefBizDataInstTable.orig_proc_inst_id] = record.get(4).toLong()
     }
 
     fun insertArchMultiBizData(it: InsertStatement<Number>, record: CSVRecord) {
         it[ArchMultiBizDataTable.tenantId] = record.get(0).toLong()
         it[ArchMultiBizDataTable.id] = record.get(1).toLong()
+        it[ArchMultiBizDataTable.idx] = record.get(2).toLong()
         it[ArchMultiBizDataTable.dataId] = record.get(3).toLong()
     }
 
@@ -81,6 +86,8 @@ class ArchiveRepository {
         it[ArchDataInstanceTable.tenantId] = record.get(0).toLong()
         it[ArchDataInstanceTable.id] = record.get(1).toLong()
         it[ArchDataInstanceTable.name] = record.get(2)
+        it[ArchDataInstanceTable.containerId] = record.get(6).toLong()
+        it[ArchDataInstanceTable.containerType] = record.get(7)
         it[ArchDataInstanceTable.archiveDate] = record.get(19).toLong()
     }
 
@@ -118,6 +125,63 @@ class ArchiveRepository {
             read("/data/arch_process_instance.csv").forEach { entry ->
                 ArchProcessInstanceTable.insert {
                     insertArchProcessInstance(it, entry)
+                }
+            }
+        }
+        transaction {
+            read("/data/arch_contract_data.csv").forEach { entry ->
+                ArchContractDataTable.insert {
+                    instertArchContractData(it, entry)
+                }
+            }
+        }
+        transaction {
+            read("/data/arch_process_comment.csv").forEach { entry ->
+                ArchProcessCommentTable.insert {
+                    insertArchProcessComment(it, entry)
+                }
+            }
+        }
+        transaction {
+            read("/data/arch_document_mapping.csv").forEach { entry ->
+                ArchDocumentMappingTable.insert {
+                    insertArchDocumentMapping(it, entry)
+                }
+            }
+        }
+        transaction {
+            read("/data/arch_flownode_instance.csv").forEach { entry ->
+                ArchFlowNodeinstanceTable.insert {
+                    insertArchFlowNodeInstance(it, entry)
+                }
+            }
+        }
+        transaction {
+            read("/data/arch_connector_instance.csv").forEach { entry ->
+                ArchConnectorInstanceTable.insert {
+                    insertArchConnectorInstance(it, entry)
+                }
+            }
+
+        }
+        transaction {
+            read("/data/arch_ref_biz_data.csv").forEach { entry ->
+                ArchRefBizDataInstTable.insert {
+                    insertArchRefBizDataInst(it, entry)
+                }
+            }
+        }
+        transaction {
+            read("/data/arch_multi_biz_data.csv").forEach { entry ->
+            ArchMultiBizDataTable.insert {
+                    insertArchMultiBizData(it, entry)
+                }
+            }
+        }
+         transaction {
+            read("/data/arch_data_instance.csv").forEach { entry ->
+            ArchDataInstanceTable.insert {
+                    insertArchDataInstance(it, entry)
                 }
             }
         }

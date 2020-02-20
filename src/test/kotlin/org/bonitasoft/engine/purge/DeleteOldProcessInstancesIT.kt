@@ -75,7 +75,7 @@ class DeleteOldProcessInstancesIT {
 
         //given
         val archProcessInstancesBeforePurge = transaction {
-            ArchProcessInstanceTable.selectAll().map(toList)
+            ArchProcessInstanceTable.selectAll().map(toArchProcessInstanceList)
         }
         var otherProcessesCountBeforePurge = archProcessInstancesBeforePurge.count {
             it.get(3) != "6547377706517145159"
@@ -86,7 +86,7 @@ class DeleteOldProcessInstancesIT {
 
         //then
         val archProcessInstancesAfterPurge = transaction {
-            ArchProcessInstanceTable.selectAll().map(toList)
+            ArchProcessInstanceTable.selectAll().map(toArchProcessInstanceList)
         }
         var otherProcessesCountAfterPurge = archProcessInstancesAfterPurge.count {
             it.get(3) != "6547377706517145159"
@@ -97,7 +97,7 @@ class DeleteOldProcessInstancesIT {
         assertThat(otherProcessesCountAfterPurge).isEqualTo(otherProcessesCountBeforePurge)
     }
 
-    val toList = fun(it: ResultRow): List<String?> {
+    val toArchProcessInstanceList = fun(it: ResultRow): List<String?> {
         return listOf(
                 it[ArchProcessInstanceTable.tenantId].toString(),
                 it[ArchProcessInstanceTable.id].toString(),
