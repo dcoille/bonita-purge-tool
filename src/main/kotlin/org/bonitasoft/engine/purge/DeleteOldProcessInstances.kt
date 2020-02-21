@@ -75,7 +75,7 @@ class DeleteOldProcessInstances(
     WHERE B.ROOTPROCESSINSTANCEID = B.SOURCEOBJECTID
     AND A.ROOTPROCESSINSTANCEID = B.ROOTPROCESSINSTANCEID
     AND PROCESSDEFINITIONID = ?
-    and STATEID = 6
+    and (STATEID = 6 OR STATEID = 3 OR STATEID = 4)
     AND ENDDATE <= ?) AND tenantId = ?""", processDefinitionId, date, validTenantId)
         logger.info("Deleted $nbRows rows from table ARCH_PROCESS_INSTANCE...")
 

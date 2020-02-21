@@ -1,0 +1,116 @@
+"1","13","PROCESS","19","multipleInput","<list>
+  <map>
+    <entry>
+      <string>attribut3</string>
+      <string>ww</string>
+    </entry>
+    <entry>
+      <string>attribut2</string>
+      <string>aa</string>
+    </entry>
+    <entry>
+      <string>attribut1</string>
+      <string>qq</string>
+    </entry>
+  </map>
+  <map>
+    <entry>
+      <string>attribut3</string>
+      <string>bb</string>
+    </entry>
+    <entry>
+      <string>attribut2</string>
+      <string>ff</string>
+    </entry>
+    <entry>
+      <string>attribut1</string>
+      <string>rr</string>
+    </entry>
+  </map>
+</list>","1582214168260","13"
+"1","14","PROCESS","20","multipleInput","<list>
+  <map>
+    <entry>
+      <string>attribut3</string>
+      <string>c</string>
+    </entry>
+    <entry>
+      <string>attribut2</string>
+      <string>v</string>
+    </entry>
+    <entry>
+      <string>attribut1</string>
+      <string>a</string>
+    </entry>
+  </map>
+</list>","1582214173458","14"
+"1","15","PROCESS","21","multipleInput","<list>
+  <map>
+    <entry>
+      <string>attribut3</string>
+      <string>cc</string>
+    </entry>
+    <entry>
+      <string>attribut2</string>
+      <string>bb</string>
+    </entry>
+    <entry>
+      <string>attribut1</string>
+      <string>aa</string>
+    </entry>
+  </map>
+</list>","1582214179886","15"
+"1","16","TASK","140","input1","<string>aaa</string>","1582214188348","16"
+"1","17","TASK","142","input1","<string>task 1</string>","1582214201643","17"
+"1","18","TASK","144","input1","<string>aaafffccc</string>","1582214213227","18"
+"1","19","PROCESS","28","multipleInput","<list>
+  <map>
+    <entry>
+      <string>attribut3</string>
+      <string>with comments</string>
+    </entry>
+    <entry>
+      <string>attribut2</string>
+      <string>with comments</string>
+    </entry>
+    <entry>
+      <string>attribut1</string>
+      <string>with comments</string>
+    </entry>
+  </map>
+</list>","1582214232931","19"
+"1","20","TASK","209","input1","<string>submittion</string>","1582214264845","20"
+"1","21","PROCESS","31","multipleInput","<list>
+  <map>
+    <entry>
+      <string>attribut3</string>
+      <string>qsdf</string>
+    </entry>
+    <entry>
+      <string>attribut2</string>
+      <string>qsdf</string>
+    </entry>
+    <entry>
+      <string>attribut1</string>
+      <string>qds</string>
+    </entry>
+  </map>
+</list>","1582218652702","21"
+"1","22","TASK","232","input1","<string>execyte</string>","1582218699703","22"
+"1","101","PROCESS","1001","multipleInput","<list>
+  <map>
+    <entry>
+      <string>attribut3</string>
+      <string>&quot;&quot;&quot;&quot;</string>
+    </entry>
+    <entry>
+      <string>attribut2</string>
+      <string>ééé</string>
+    </entry>
+    <entry>
+      <string>attribut1</string>
+      <string>&amp;&amp;&amp;</string>
+    </entry>
+  </map>
+</list>","1582295262391","101"
+"1","102","TASK","20002","input1","<string>input value</string>","1582295416024","102"

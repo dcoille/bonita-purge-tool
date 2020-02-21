@@ -81,9 +81,6 @@ CREATE TABLE arch_process_comment(
   PRIMARY KEY (tenantid, id)
 );
 
-CREATE INDEX idx1_arch_process_comment on arch_process_comment (sourceobjectid, tenantid);
-CREATE INDEX idx2_arch_process_comment on arch_process_comment (processInstanceId, archivedate, tenantid);
-
 CREATE TABLE arch_document_mapping (
   tenantid INT8 NOT NULL,
   id INT8 NOT NULL,
@@ -148,10 +145,8 @@ CREATE TABLE arch_flownode_instance (
   interrupting BOOLEAN,
   PRIMARY KEY (tenantid, id)
 );
-CREATE INDEX idx_afi_kind_lg2_executedBy ON arch_flownode_instance(logicalGroup2, tenantId, kind, executedBy);
 CREATE INDEX idx_afi_kind_lg3 ON arch_flownode_instance(tenantId, kind, logicalGroup3);
 CREATE INDEX idx_afi_sourceId_tenantid_kind ON arch_flownode_instance (sourceObjectId, tenantid, kind);
-CREATE INDEX idx1_arch_flownode_instance ON arch_flownode_instance (tenantId, rootContainerId, parentContainerId);
 
 CREATE TABLE arch_connector_instance (
   tenantid INT8 NOT NULL,
@@ -177,7 +172,7 @@ CREATE TABLE arch_ref_biz_data_inst (
 --   	name VARCHAR(255) NOT NULL,
   	orig_proc_inst_id BIGINT,
   	orig_fn_inst_id BIGINT,
-  	data_id BIGINT,
+  	data_id BIGINT
 --   	data_classname VARCHAR(255) NOT NULL
 );
 CREATE INDEX idx_arch_biz_data_inst1 ON arch_ref_biz_data_inst (tenantid, orig_proc_inst_id);
@@ -217,6 +212,3 @@ CREATE TABLE arch_data_instance (
 -- 	sourceObjectId INT8 NOT NULL,
 	PRIMARY KEY (tenantid, id)
 );
-
-CREATE INDEX idx1_arch_data_instance ON arch_data_instance (tenantId, containerId, containerType, archiveDate, name, sourceObjectId);
-CREATE INDEX idx2_arch_data_instance ON arch_data_instance (sourceObjectId, containerId, archiveDate, id, tenantId);

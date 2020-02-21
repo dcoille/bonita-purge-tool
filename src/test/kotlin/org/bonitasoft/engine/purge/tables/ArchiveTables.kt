@@ -27,36 +27,37 @@ object ArchContractDataTable : Table("arch_contract_data") {
 object ArchProcessCommentTable : Table("arch_process_comment") {
     val tenantId = long("tenantid").primaryKey()
     val id = long("id").primaryKey()
-    val processInstanceId = long("processInstanceId")
-    val archiveDate = long("archiveDate")
+    val processInstanceId = long("processinstanceid")
+    val archiveDate = long("archivedate")
 }
 
 object ArchDocumentMappingTable : Table("arch_document_mapping") {
     val tenantId = long("tenantid").primaryKey()
     val id = long("id").primaryKey()
-    val processInstanceId = long("processInstanceId")
+    val processInstanceId = long("processinstanceid")
     val documentid = long("documentid")
     val name = varchar("name", 50)
-    val archiveDate = long("archiveDate")
+    val archiveDate = long("archivedate")
 
 }
 
 object ArchFlowNodeinstanceTable : Table("arch_flownode_instance") {
     val tenantId = long("tenantid").primaryKey()
     val id = long("id").primaryKey()
-    val archiveDate = long("archiveDate")
-    val flownodeDefinitionId = long("flownodeDefinitionId")
-    val rootContainerId = long("rootContainerId")
+    val flownodeDefinitionId = long("flownodedefinitionid")
+    val kind = varchar("kind", 50)
+    val archiveDate = long("archivedate")
+    val rootContainerId = long("rootcontainerid")
 }
 
 object ArchConnectorInstanceTable : Table("arch_connector_instance") {
     val tenantId = long("tenantid").primaryKey()
     val id = long("id").primaryKey()
-    val archiveDate = long("archiveDate")
+    val archiveDate = long("archivedate")
     val name = varchar("name", 255)
     val version = varchar("version", 50)
-    val containerId = long("containerId")
-    val containerType = varchar("containerType",10)
+    val containerId = long("containerid")
+    val containerType = varchar("containertype",10)
 }
 
 object ArchRefBizDataInstTable : Table("arch_ref_biz_data_inst") {
@@ -70,14 +71,13 @@ object ArchMultiBizDataTable : Table("arch_multi_biz_data") {
     val id = long("id").primaryKey()
     val idx = long("idx")
     val dataId = long("data_id")
-
 }
 
 object ArchDataInstanceTable : Table("arch_data_instance") {
     val tenantId = long("tenantid").primaryKey()
     val id = long("id").primaryKey()
     val name = varchar("name", 50)
-    val containerId = long("containerId")
-    val containerType = varchar("containerType",60)
-    val archiveDate = long("archiveDate")
+    val containerId = long("containerid")
+    val containerType = varchar("containertype",60)
+    val archiveDate = long("archivedate")
 }
