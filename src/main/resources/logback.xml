@@ -14,11 +14,12 @@
         </encoder>
     </appender>
 
-    <logger name="org.bonitasoft" level="INFO"/>
+    <logger name="org.bonitasoft" level="INFO" />
+    <logger name="com.zaxxer.hikari.pool.HikariPool" level="OFF" />
 
     <root level="ERROR">
-        <appender-ref ref="STDOUT"/>
-        <appender-ref ref="FILE"/>
+        <appender-ref ref="STDOUT" />
+        <appender-ref ref="FILE" />
     </root>
 
 

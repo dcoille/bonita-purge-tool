@@ -21,9 +21,8 @@ open class ApplicationConfiguration {
     open fun someBean(datasource: DataSource): Database {
         val connect = Database.connect(datasource, setupConnection = { connection -> connection.transactionIsolation = TRANSACTION_READ_COMMITTED })
         TransactionManager.manager.defaultIsolationLevel = TRANSACTION_READ_COMMITTED
-        logger.info("Using datasource with $datasource")
+        logger.info("Using datasource with ${datasource.javaClass.simpleName}")
         return connect
     }
-
 
 }

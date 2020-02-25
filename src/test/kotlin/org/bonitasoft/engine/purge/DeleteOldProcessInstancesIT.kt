@@ -96,7 +96,7 @@ select count(id) FROM ARCH_PROCESS_INSTANCE A WHERE exists (
         // 'All kinds of elements': 6001594822724869891
         // 'subProcess': 6776413672588351051
         // when:
-        deleteOldProcessInstances.execute(processDefinitionId, dateBeforeWhichToPurge /*future date*/, 1L)
+        deleteOldProcessInstances.execute(processDefinitionId, dateBeforeWhichToPurge, 1L)
 
         // then:
         val nbOfOtherProcessesCountAfterPurge = jdbcTemplate.queryForObject(rowsNotToDelete, arrayOf(processDefinitionId, dateBeforeWhichToPurge), Int::class.java)

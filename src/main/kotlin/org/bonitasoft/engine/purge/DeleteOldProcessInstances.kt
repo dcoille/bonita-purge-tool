@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.datasource.init.ScriptUtils
 import org.springframework.stereotype.Service
+import java.net.ConnectException
 import java.time.Instant
 import java.time.ZoneId
 import kotlin.system.exitProcess
@@ -22,7 +23,7 @@ import kotlin.system.measureTimeMillis
 
 @Service
 class DeleteOldProcessInstances(
-        @Value("\${org.bonitasoft.engine.migration.skip_confirmation:true}") private val skipConfirmation: Boolean,
+        @Value("\${org.bonitasoft.engine.purge.skip_confirmation:true}") private val skipConfirmation: Boolean,
         @Value("\${spring.datasource.url:#{null}}") private val databaseUrl: String?,
         private val jdbcTemplate: JdbcTemplate) {
 
@@ -119,8 +120,7 @@ class DeleteOldProcessInstances(
             if (tenants.size > 1) {
                 logger.error("Multiple tenants exist ${tenants.entries}. Please specify tenant ID as 3rd parameter")
                 quitWithCode(1)
-            }
-            else tenants.keys.first()
+            } else tenants.keys.first()
         } else {
             if (!tenants.containsKey(tenantId)) {
                 logger.error("Tenant with ID $tenantId does not exist. Available tenants are ${tenants.entries}")
@@ -131,10 +131,12 @@ class DeleteOldProcessInstances(
         }
     }
 
-    internal fun getAllTenants() = transaction {
-        Tenant.slice(Tenant.id, Tenant.name)
-                .selectAll()
-                .map { it[Tenant.id] to it[Tenant.name] }.toMap()
+    internal fun getAllTenants(): Map<Long, String> = transaction {
+        handleException {
+            Tenant.slice(Tenant.id, Tenant.name)
+                    .selectAll()
+                    .map { it[Tenant.id] to it[Tenant.name] }.toMap()
+        }
     }
 
     internal fun getProcessDefinition(processDefinitionId: Long): List<Pair<String, String>> = transaction {
@@ -157,6 +159,15 @@ class DeleteOldProcessInstances(
         logger.info("Archive process instance purge completed.")
         logger.info("Some of the deleted elements may still appear in Bonita Portal for a short while.")
         logger.info("If you try to access them you will get a not found error. This is the expected behaviour.")
+    }
+
+    private fun <T> handleException(block: () -> T): T = try {
+        block()
+    } catch (e: Exception) {
+        if (e.cause is ConnectException) {
+            logger.error("Fail to connect to database: ${e.message}")
+        }
+        exitProcess(-1)
     }
 
     internal fun quitWithCode(i: Int): Nothing = exitProcess(i)

@@ -13,14 +13,14 @@ Make sure you have Java 8+ installed and simply run:
     
 ### Run the tool
 
-    java -jar build/libs/bonita-purge-tool.jar <PROCESS_DEFINITION_ID> <OLDEST_DATE_TIMESTAMP> [<TENAND_ID>]
+    java -jar build/libs/bonita-purge-tool.jar <PROCESS_DEFINITION_ID> <OLDEST_DATE_TIMESTAMP> [<TENANT_ID>]
     
 This command will delete all archived process instances belonging to the process identified by **PROCESS_DEFINITION_ID**, that are finished since at least **OLDEST_DATE_TIMESTAMP**.
 
-An optional TENAND_ID parameter can be given if the platform uses multiple tenants to specify on which tenant should the process instances be deleted. If multi-tenancy is used and the TENAND_ID is not set, an error is issued and the program stops.
+An optional TENANT_ID parameter can be given if the platform uses multiple tenants to specify on which tenant should the process instances be deleted. If multi-tenancy is used and the TENANT_ID is not set, an error is issued and the program stops.
 
 OLDEST_DATE_TIMESTAMP must be a DATE from which all process instances that finished before that date will be deleted. Unfinished process instances and process instances that finished after that date will not be affected.
     
 ### CLI (Command line interface)
 
-    bin/bonita-purge-tool(.bat) <PROCESS_DEFINITION_ID> <OLDEST_DATE_TIMESTAMP> [<TENAND_ID>]
+    bin/bonita-purge-tool(.bat) <PROCESS_DEFINITION_ID> <OLDEST_DATE_TIMESTAMP> [<TENANT_ID>]
