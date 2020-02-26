@@ -56,6 +56,7 @@ class ArchiveRepository {
         it[ArchFlowNodeinstanceTable.id] = record.get(1).toLong()
         it[ArchFlowNodeinstanceTable.flownodeDefinitionId] = record.get(2).toLong()
         it[ArchFlowNodeinstanceTable.kind] = record.get(3)
+        it[ArchFlowNodeinstanceTable.sourceObjectId] = record.get(4).toLong()
         it[ArchFlowNodeinstanceTable.archiveDate] = record.get(5).toLong()
         it[ArchFlowNodeinstanceTable.rootContainerId] = record.get(6).toLong()
     }
@@ -98,7 +99,6 @@ class ArchiveRepository {
     }
 
     private fun insertProcessDefinition(it: InsertStatement<Number>, record: CSVRecord) {
-        logger.debug("inserting process def ${record.get(2).toLong()}")
         it[ProcessDefinition.tenantId] = record.get(0).toLong()
         it[ProcessDefinition.id] = record.get(1).toLong()
         it[ProcessDefinition.processId] = record.get(2).toLong()
@@ -107,7 +107,7 @@ class ArchiveRepository {
     }
 
     fun insert_data_before_purge() {
-        logger.info("create tables using scripts")
+        logger.info("Filling in tables using CSV files")
         transaction {
             read("/data/tenant.csv").forEach { entry ->
                 Tenant.insert {

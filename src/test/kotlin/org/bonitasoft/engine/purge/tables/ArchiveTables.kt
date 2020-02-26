@@ -38,7 +38,6 @@ object ArchDocumentMappingTable : Table("arch_document_mapping") {
     val documentid = long("documentid")
     val name = varchar("name", 50)
     val archiveDate = long("archivedate")
-
 }
 
 object ArchFlowNodeinstanceTable : Table("arch_flownode_instance") {
@@ -46,6 +45,7 @@ object ArchFlowNodeinstanceTable : Table("arch_flownode_instance") {
     val id = long("id").primaryKey()
     val flownodeDefinitionId = long("flownodedefinitionid")
     val kind = varchar("kind", 50)
+    val sourceObjectId = long("sourceobjectid")
     val archiveDate = long("archivedate")
     val rootContainerId = long("rootcontainerid")
 }
@@ -57,7 +57,7 @@ object ArchConnectorInstanceTable : Table("arch_connector_instance") {
     val name = varchar("name", 255)
     val version = varchar("version", 50)
     val containerId = long("containerid")
-    val containerType = varchar("containertype",10)
+    val containerType = varchar("containertype", 10)
 }
 
 object ArchRefBizDataInstTable : Table("arch_ref_biz_data_inst") {
@@ -78,6 +78,6 @@ object ArchDataInstanceTable : Table("arch_data_instance") {
     val id = long("id").primaryKey()
     val name = varchar("name", 50)
     val containerId = long("containerid")
-    val containerType = varchar("containertype",60)
+    val containerType = varchar("containertype", 60)
     val archiveDate = long("archivedate")
 }

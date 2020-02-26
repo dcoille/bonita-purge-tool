@@ -31,7 +31,6 @@ class DeleteOldProcessInstancesIT {
 
     private val logger: Logger = LoggerFactory.getLogger(DeleteOldProcessInstancesIT::class.java)
 
-
     @BeforeTest
     fun before() {
         transaction {
@@ -55,6 +54,14 @@ class DeleteOldProcessInstancesIT {
                 }
             }
             archiveRepository.insert_data_before_purge()
+        }
+    }
+
+    private fun createTablesFromScript(fileName: String) {
+        logger.info("Creating tables using script $fileName")
+        val content = DeleteOldProcessInstancesIT::class.java.getResource(fileName).readText()
+        content.split(";").filter { !it.isBlank() }.forEach {
+            jdbcTemplate.execute(it.trim())
         }
     }
 
@@ -92,6 +99,18 @@ select count(id) FROM ARCH_PROCESS_INSTANCE A WHERE exists (
         var nbOfArchProcessInstancesToDelete = jdbcTemplate.queryForObject(rowsToDelete, arrayOf(processDefinitionId, dateBeforeWhichToPurge), Int::class.java)
         assertThat(nbOfArchProcessInstancesToDelete).isEqualTo(44) // nb of corresponding lines to purge in data file 'arch_process_instance.csv'
 
+        assertThat(jdbcTemplate.queryForObject("SELECT count(id) FROM ARCH_CONTRACT_DATA WHERE KIND = 'PROCESS'", Int::class.java)).isEqualTo(6)
+        assertThat(jdbcTemplate.queryForObject("SELECT count(id) from ARCH_DATA_INSTANCE where CONTAINERTYPE = 'PROCESS_INSTANCE'", Int::class.java)).isEqualTo(23)
+        assertThat(jdbcTemplate.queryForObject("SELECT count(id) from ARCH_DOCUMENT_MAPPING", Int::class.java)).isEqualTo(10)
+        assertThat(jdbcTemplate.queryForObject("SELECT count(id) from ARCH_FLOWNODE_INSTANCE", Int::class.java)).isEqualTo(181)
+        assertThat(jdbcTemplate.queryForObject("SELECT count(id) from ARCH_PROCESS_COMMENT", Int::class.java)).isEqualTo(15)
+        assertThat(jdbcTemplate.queryForObject("SELECT count(id) from ARCH_REF_BIZ_DATA_INST", Int::class.java)).isEqualTo(10)
+        assertThat(jdbcTemplate.queryForObject("SELECT count(id) from ARCH_CONNECTOR_INSTANCE WHERE CONTAINERTYPE = 'process'", Int::class.java)).isEqualTo(10)
+        assertThat(jdbcTemplate.queryForObject("SELECT count(id) FROM ARCH_CONTRACT_DATA WHERE KIND = 'TASK'", Int::class.java)).isEqualTo(6)
+        assertThat(jdbcTemplate.queryForObject("SELECT count(id) FROM ARCH_DATA_INSTANCE WHERE CONTAINERTYPE = 'ACTIVITY_INSTANCE'", Int::class.java)).isEqualTo(12)
+        assertThat(jdbcTemplate.queryForObject("SELECT count(id) FROM ARCH_CONNECTOR_INSTANCE WHERE CONTAINERTYPE = 'flowNode'", Int::class.java)).isEqualTo(11)
+
+
         // last finished process instance to purge at 1582214307090
         // 'All kinds of elements': 6001594822724869891
         // 'subProcess': 6776413672588351051
@@ -104,14 +123,43 @@ select count(id) FROM ARCH_PROCESS_INSTANCE A WHERE exists (
 
         nbOfArchProcessInstancesToDelete = jdbcTemplate.queryForObject(rowsToDelete, arrayOf(processDefinitionId, dateBeforeWhichToPurge), Int::class.java)
         assertThat(nbOfArchProcessInstancesToDelete).`as`("There should be not more lines to delete").isEqualTo(0)
-    }
 
-    private fun createTablesFromScript(fileName: String) {
-        logger.info("create tables using script $fileName")
-        val content = DeleteOldProcessInstancesIT::class.java.getResource(fileName).readText()
-        content.split(";").filter { !it.isBlank() }.forEach {
-            jdbcTemplate.execute(it.trim())
-        }
+        // 4 lines deleted, 2 remaining:
+        val archContractDataForProcess = jdbcTemplate.queryForList("SELECT id FROM ARCH_CONTRACT_DATA WHERE KIND = 'PROCESS'")
+        assertThat(archContractDataForProcess.size).isEqualTo(2)
+        assertThat(archContractDataForProcess).extracting("id").containsOnly(21L, 101L)
+        // 16 lines deleted, 7 remaining:
+        val archDataInstancesForProcess = jdbcTemplate.queryForList("SELECT id from ARCH_DATA_INSTANCE where CONTAINERTYPE = 'PROCESS_INSTANCE'")
+        assertThat(archDataInstancesForProcess.size).isEqualTo(7)
+        assertThat(archDataInstancesForProcess).extracting("id").containsOnly(61L, 64L, 65L, 66L, 25001L, 25004L, 25005L)
+        // 8 deleted, 2 remaining:
+        val archDocumentMapping = jdbcTemplate.queryForList("SELECT id from ARCH_DOCUMENT_MAPPING")
+        assertThat(archDocumentMapping.size).isEqualTo(2)
+        assertThat(archDocumentMapping).extracting("id").containsOnly(15L, 16L)
+        // 50 arch flowNode instances remaining:
+        assertThat(jdbcTemplate.queryForObject("SELECT count(id) from ARCH_FLOWNODE_INSTANCE", Int::class.java)).isEqualTo(50)
+        // 12 deleted, 3 remaining:
+        val archProcessComments = jdbcTemplate.queryForList("SELECT id from ARCH_PROCESS_COMMENT")
+        assertThat(archProcessComments.size).isEqualTo(3)
+        assertThat(archProcessComments).extracting("id").containsOnly(25L, 26L, 27L)
+        val archRefBizDataInst = jdbcTemplate.queryForList("SELECT id from ARCH_REF_BIZ_DATA_INST")
+        assertThat(archRefBizDataInst.size).isEqualTo(2)
+        assertThat(archRefBizDataInst).extracting("id").containsOnly(21L, 22L)
+        val archConnectorInstForProcess = jdbcTemplate.queryForList("SELECT id FROM ARCH_CONNECTOR_INSTANCE WHERE CONTAINERTYPE = 'process'")
+        assertThat(archConnectorInstForProcess.size).isEqualTo(2)
+        assertThat(archConnectorInstForProcess).extracting("id").containsOnly(31L, 32L)
+        // 4 lines deleted, 2 remaining:
+        val archContractDataForTask = jdbcTemplate.queryForList("SELECT id FROM ARCH_CONTRACT_DATA WHERE KIND = 'TASK'")
+        assertThat(archContractDataForTask.size).isEqualTo(2)
+        assertThat(archContractDataForTask).extracting("id").containsOnly(22L, 102L)
+        // 8 lines deleted, 4 remaining:
+        val archDataInstanceForTask = jdbcTemplate.queryForList("SELECT id FROM ARCH_DATA_INSTANCE WHERE CONTAINERTYPE = 'ACTIVITY_INSTANCE'")
+        assertThat(archDataInstanceForTask.size).isEqualTo(4)
+        assertThat(archDataInstanceForTask).extracting("id").containsOnly(62L, 63L, 25_002L, 25_003L)
+        // 8 lines deleted, 3 remaining:
+        val archConnectorInstForTask = jdbcTemplate.queryForList("SELECT id FROM ARCH_CONNECTOR_INSTANCE WHERE CONTAINERTYPE = 'flowNode'")
+        assertThat(archConnectorInstForTask.size).isEqualTo(3)
+        assertThat(archConnectorInstForTask).extracting("id").containsOnly(29L, 30L, 101L)
     }
 
 }
