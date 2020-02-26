@@ -39,19 +39,21 @@ class DeleteOldProcessInstances(
         val processDefinition = getProcessDefinition(processDefinitionId)
         when {
             processDefinition.isEmpty() -> {
-                logger.error("No process definition exists for id $processDefinitionId. Exiting.")
+                logger.error("No process definition exists for id $processDefinitionId.")
+                logger.info("Existing process definitions are:\n${getAllProcessDefinitions().joinToString("\n")}")
                 quitWithCode(1)
             }
             countArchivedProcessInstances(processDefinitionId) == 0 -> {
                 logger.warn("""
-                    |No finished process instance exists for process '${processDefinition[0].first}' in version '${processDefinition[0].second}'.
+                    |No finished process instance exists for process '${processDefinition[0].first}' in version '${processDefinition[0].second}'
+                    |before ${toLocalDateTime(date)}
                     |Continuing will purge all archived orphan elements that may remain from a previous interrupted purge execution.
                     """.trimMargin())
             }
             else -> {
                 logger.info("Will purge all archived process instances and their elements for process " +
                         "'${processDefinition[0].first}' in version '${processDefinition[0].second}'" +
-                        " that are finished since at least ${Instant.ofEpochMilli(date).atZone(ZoneId.systemDefault()).toLocalDateTime()}")
+                        " that are finished since at least ${toLocalDateTime(date)}")
             }
         }
         if (!skipConfirmation) {
@@ -67,6 +69,9 @@ class DeleteOldProcessInstances(
         purgeArchContractDataTableIfExists(validTenantId)
         logPurgeFinishedAndWarn()
     }
+
+    private fun toLocalDateTime(date: Long) =
+            Instant.ofEpochMilli(date).atZone(ZoneId.systemDefault()).toLocalDateTime()
 
     internal fun doExecutePurge(processDefinitionId: Long, date: Long, validTenantId: Long) {
         val nbRows = jdbcTemplate.update("""
@@ -145,6 +150,16 @@ class DeleteOldProcessInstances(
                     ProcessDefinition.processId eq processDefinitionId
                 }
                 .map { it[ProcessDefinition.name] to it[ProcessDefinition.version] }
+    }
+
+    internal fun getAllProcessDefinitions(): MutableList<String> {
+        val definitions = mutableListOf<String>()
+        transaction {
+            for (d in ProcessDefinition.selectAll()) {
+                definitions.add("${d[ProcessDefinition.processId]} - ${d[ProcessDefinition.name]} (${d[ProcessDefinition.version]})")
+            }
+        }
+        return definitions
     }
 
     internal fun countArchivedProcessInstances(processDefinitionId: Long): Int = transaction {

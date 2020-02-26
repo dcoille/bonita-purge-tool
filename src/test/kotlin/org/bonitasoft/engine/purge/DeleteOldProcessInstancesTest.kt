@@ -27,6 +27,7 @@ internal class DeleteOldProcessInstancesTest {
 
         every { deleteOldProcessInstances.checkTenantIdValidity(any()) } returns 0L
         every { deleteOldProcessInstances.getProcessDefinition(111L) } returns emptyList()
+        every { deleteOldProcessInstances.getAllProcessDefinitions() } returns mutableListOf()
         every { deleteOldProcessInstances.quitWithCode(1) } throws RuntimeException("For test only")
 
         assertThrows<RuntimeException> {
@@ -34,7 +35,7 @@ internal class DeleteOldProcessInstancesTest {
         }
 
         verify { deleteOldProcessInstances.quitWithCode(1) }
-        assertThat(TestLoggerAppender.allLogs()).anyMatch { it.message.contains("No process definition exists for id 111. Exiting.") }
+        assertThat(TestLoggerAppender.allLogs()).anyMatch { it.message.contains("No process definition exists for id 111.") }
     }
 
     @Test
@@ -107,8 +108,7 @@ internal class DeleteOldProcessInstancesTest {
         deleteOldProcessInstances.execute(999888777L, 165000000000L, 1000L)
 
         assertThat(TestLoggerAppender.allLogs()).anyMatch {
-            it.level == Level.WARN && it.message.contains("""No finished process instance exists for process 'MyProcess' in version '1.1'.
-            |Continuing will purge all archived orphan elements that may remain from a previous interrupted purge execution.""".trimMargin())
+            it.level == Level.WARN && it.message.contains("No finished process instance exists for process 'MyProcess' in version '1.1'")
         }
     }
 }
