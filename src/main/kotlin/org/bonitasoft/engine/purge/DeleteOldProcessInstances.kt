@@ -74,18 +74,13 @@ class DeleteOldProcessInstances(
             Instant.ofEpochMilli(date).atZone(ZoneId.systemDefault()).toLocalDateTime()
 
     internal fun doExecutePurge(processDefinitionId: Long, date: Long, validTenantId: Long) {
-        val nbRows = jdbcTemplate.update("""
-    DELETE FROM arch_process_instance A WHERE exists (
-    SELECT rootprocessinstanceid
-    FROM arch_process_instance B
-    WHERE B.ROOTPROCESSINSTANCEID = B.SOURCEOBJECTID
-    AND A.ROOTPROCESSINSTANCEID = B.ROOTPROCESSINSTANCEID
-    AND PROCESSDEFINITIONID = ?
-    and (STATEID = 6 OR STATEID = 3 OR STATEID = 4)
-    AND ENDDATE <= ?) AND tenantId = ?""", processDefinitionId, date, validTenantId)
+        val statements: MutableList<String> = mutableListOf()
+        ScriptUtils.splitSqlScript(this::class.java.getResource("/delete_arch_process_instance_mysql.sql").readText(Charsets.UTF_8), ";", statements)
+        var nbRows = jdbcTemplate.update(statements[0], processDefinitionId, date, validTenantId)
+
         logger.info("Deleted $nbRows rows from table ARCH_PROCESS_INSTANCE...")
 
-        executeSQLScript("/delete_scenario.sql", validTenantId)
+        executeSQLScript("/delete_scenario_mysql.sql", validTenantId)
     }
 
     internal fun purgeArchContractDataTableIfExists(validTenantId: Long) {
