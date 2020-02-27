@@ -29,7 +29,7 @@ class DeleteOldProcessInstancesIT {
 
     private var archiveRepository = ArchiveRepository()
 
-    private val logger: Logger = LoggerFactory.getLogger(DeleteOldProcessInstancesIT::class.java)
+    private val logger = LoggerFactory.getLogger(DeleteOldProcessInstancesIT::class.java)
 
     @BeforeTest
     fun before() {
@@ -37,22 +37,16 @@ class DeleteOldProcessInstancesIT {
             logger.info("Drop test tables")
             SchemaUtils.drop()
         }
-        logger.debug("jdbcTemplate connection url: ${jdbcTemplate.dataSource?.connection?.metaData?.url}")
+        jdbcTemplate.dataSource?.connection.use { c ->
+            // to make sure the connection is released afterwards
+            logger.debug("jdbcTemplate connection url: ${c?.metaData?.url}")
+        }
+        when (val dbVendor = getDbVendor(driverClassName)) {
+            "sqlserver" -> createTablesFromScript("/sqlserver.sql", "GO")
+            else ->
+                createTablesFromScript("/$dbVendor.sql")
+        }
         transaction {
-            when {
-                driverClassName.contains("postgresql") -> {
-                    createTablesFromScript("/postgres.sql")
-                }
-                driverClassName.contains("oracle") -> {
-                    createTablesFromScript("/oracle.sql")
-                }
-                driverClassName.contains("mysql") -> {
-                    createTablesFromScript("/mysql.sql")
-                }
-                driverClassName.contains("sqlserver") -> {
-                    createTablesFromScript("/sqlserver.sql", "GO")
-                }
-            }
             archiveRepository.insert_data_before_purge()
         }
     }

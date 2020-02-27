@@ -25,6 +25,7 @@ import kotlin.system.measureTimeMillis
 class DeleteOldProcessInstances(
         @Value("\${org.bonitasoft.engine.purge.skip_confirmation:true}") private val skipConfirmation: Boolean,
         @Value("\${spring.datasource.url:#{null}}") private val databaseUrl: String?,
+        @Value("\${spring.datasource.driver-class-name:h2}") private val driverClassName: String,
         private val jdbcTemplate: JdbcTemplate) {
 
     private val logger = LoggerFactory.getLogger(DeleteOldProcessInstances::class.java)
@@ -75,12 +76,13 @@ class DeleteOldProcessInstances(
 
     internal fun doExecutePurge(processDefinitionId: Long, date: Long, validTenantId: Long) {
         val statements: MutableList<String> = mutableListOf()
-        ScriptUtils.splitSqlScript(this::class.java.getResource("/delete_arch_process_instance_mysql.sql").readText(Charsets.UTF_8), ";", statements)
-        var nbRows = jdbcTemplate.update(statements[0], processDefinitionId, date, validTenantId)
+        ScriptUtils.splitSqlScript(this::class.java.getResource("/delete_arch_process_instance_${getDbVendor(driverClassName)}.sql").readText(Charsets.UTF_8), ";", statements)
+        logger.debug("Executing SQL: ${statements[0]}")
+        val nbRows = jdbcTemplate.update(statements[0], processDefinitionId, date, validTenantId)
 
         logger.info("Deleted $nbRows rows from table ARCH_PROCESS_INSTANCE...")
 
-        executeSQLScript("/delete_scenario_mysql.sql", validTenantId)
+        executeSQLScript("/delete_scenario_${getDbVendor(driverClassName)}.sql", validTenantId)
     }
 
     internal fun purgeArchContractDataTableIfExists(validTenantId: Long) {
@@ -181,5 +183,13 @@ class DeleteOldProcessInstances(
     }
 
     internal fun quitWithCode(i: Int): Nothing = exitProcess(i)
-
 }
+
+fun getDbVendor(driverClassName: String) =
+        when {
+            driverClassName.contains("postgresql") -> "postgres"
+            driverClassName.contains("oracle") -> "oracle"
+            driverClassName.contains("mysql") -> "mysql"
+            driverClassName.contains("sqlserver") -> "sqlserver"
+            else -> throw RuntimeException("Cannot determine database vendor from driver $driverClassName")
+        }
