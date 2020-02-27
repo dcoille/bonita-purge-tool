@@ -101,8 +101,7 @@ class DeleteOldProcessInstances(
     private fun executeSQLScript(sqlScriptFile: String, validTenantId: Long) {
         val statements: MutableList<String> = mutableListOf()
         ScriptUtils.splitSqlScript(this::class.java.getResource(sqlScriptFile).readText(Charsets.UTF_8), ";", statements)
-        statements.forEach { st ->
-            val statement = st.toLowerCase() // For Mysql
+        statements.forEach { statement ->
             run {
                 logger.debug("Executing SQL: $statement")
                 var nbRowsDeleted = 0
