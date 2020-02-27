@@ -50,17 +50,17 @@ class DeleteOldProcessInstancesIT {
                     createTablesFromScript("/mysql.sql")
                 }
                 driverClassName.contains("sqlserver") -> {
-                    createTablesFromScript("/sqlserver.sql")
+                    createTablesFromScript("/sqlserver.sql", "GO")
                 }
             }
             archiveRepository.insert_data_before_purge()
         }
     }
 
-    private fun createTablesFromScript(fileName: String) {
+    private fun createTablesFromScript(fileName: String, delimiter: String = ";") {
         logger.info("Creating tables using script $fileName")
         val content = DeleteOldProcessInstancesIT::class.java.getResource(fileName).readText()
-        content.split(";").filter { !it.isBlank() }.forEach {
+        content.split(delimiter).filter { !it.isBlank() }.forEach {
             jdbcTemplate.execute(it.trim())
         }
     }
