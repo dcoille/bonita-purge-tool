@@ -75,9 +75,9 @@ class DeleteOldProcessInstances(
 
     internal fun doExecutePurge(processDefinitionId: Long, date: Long, validTenantId: Long) {
         val nbRows = jdbcTemplate.update("""
-    DELETE FROM ARCH_PROCESS_INSTANCE A WHERE exists (
+    DELETE FROM arch_process_instance A WHERE exists (
     SELECT rootprocessinstanceid
-    FROM ARCH_PROCESS_INSTANCE B
+    FROM arch_process_instance B
     WHERE B.ROOTPROCESSINSTANCEID = B.SOURCEOBJECTID
     AND A.ROOTPROCESSINSTANCEID = B.ROOTPROCESSINSTANCEID
     AND PROCESSDEFINITIONID = ?
@@ -101,7 +101,8 @@ class DeleteOldProcessInstances(
     private fun executeSQLScript(sqlScriptFile: String, validTenantId: Long) {
         val statements: MutableList<String> = mutableListOf()
         ScriptUtils.splitSqlScript(this::class.java.getResource(sqlScriptFile).readText(Charsets.UTF_8), ";", statements)
-        statements.forEach { statement ->
+        statements.forEach { st ->
+            val statement = st.toLowerCase() // For Mysql
             run {
                 logger.debug("Executing SQL: $statement")
                 var nbRowsDeleted = 0

@@ -1,13 +1,9 @@
 CREATE TABLE tenant (
     id INT8 NOT NULL,
---     created INT8 NOT NULL,
---     createdBy VARCHAR(50) NOT NULL,
     description VARCHAR(255),
---     defaultTenant BOOLEAN NOT NULL,
     iconname VARCHAR(50),
     iconpath VARCHAR(255),
     name VARCHAR(50) NOT NULL,
---     status VARCHAR(15) NOT NULL,
     PRIMARY KEY (id)
 );
 CREATE TABLE process_definition (
@@ -16,44 +12,11 @@ CREATE TABLE process_definition (
     processId INT8 NOT NULL,
     name VARCHAR(150) NOT NULL,
     version VARCHAR(50) NOT NULL,
---     description VARCHAR(255),
---     deploymentDate INT8 NOT NULL,
---     deployedBy INT8 NOT NULL,
---     activationState VARCHAR(30) NOT NULL,
---     configurationState VARCHAR(30) NOT NULL,
---     displayName VARCHAR(75),
---     displayDescription VARCHAR(255),
     lastUpdateDate INT8,
     categoryId INT8,
     iconPath VARCHAR(255),
---     content_tenantid INT8 NOT NULL,
---     content_id INT8 NOT NULL,
     PRIMARY KEY (tenantid, id),
     UNIQUE (tenantid, name)
-);
-
-CREATE TABLE arch_process_instance (
-    tenantid INT8 NOT NULL,
-    id INT8 NOT NULL,
-    name VARCHAR(75) NOT NULL,
-    processDefinitionId INT8 NOT NULL,
-    description VARCHAR(255),
---   startDate INT8 NOT NULL,
---   startedBy INT8 NOT NULL,
---   startedBySubstitute INT8 NOT NULL,
-    endDate INT8 NOT NULL,
---   archiveDate INT8 NOT NULL,
-    stateId INT NOT NULL,
---   lastUpdate INT8 NOT NULL,
-    rootProcessInstanceId INT8,
-    callerId INT8,
-    sourceObjectId INT8 NOT NULL,
-   stringIndex1 VARCHAR(255),
-   stringIndex2 VARCHAR(255),
-   stringIndex3 VARCHAR(255),
-   stringIndex4 VARCHAR(255),
-   stringIndex5 VARCHAR(255),
-   PRIMARY KEY (tenantid, id)
 );
 CREATE TABLE arch_contract_data (
   tenantid INT8 NOT NULL,
@@ -72,12 +35,8 @@ CREATE INDEX idx_acd_scope_name ON arch_contract_data (kind, scopeId, name, tena
 CREATE TABLE arch_process_comment(
   tenantid INT8 NOT NULL,
   id INT8 NOT NULL,
---   userId INT8,
   processInstanceId INT8 NOT NULL,
---   postDate INT8 NOT NULL,
---   content VARCHAR(512) NOT NULL,
   archiveDate INT8 NOT NULL,
---   sourceObjectId INT8 NOT NULL,
   PRIMARY KEY (tenantid, id)
 );
 
@@ -89,12 +48,29 @@ CREATE TABLE arch_document_mapping (
   documentid INT8 NOT NULL,
   name VARCHAR(50) NOT NULL,
   description TEXT,
---   version VARCHAR(50) NOT NULL,
---   index_ INT NOT NULL,
   archiveDate INT8 NOT NULL,
   PRIMARY KEY (tenantid, ID)
 );
 CREATE INDEX idx_a_doc_mp_pr_id ON arch_document_mapping (processinstanceid, tenantid);
+
+CREATE TABLE arch_process_instance (
+   tenantid INT8 NOT NULL,
+   id INT8 NOT NULL,
+   name VARCHAR(75) NOT NULL,
+   processDefinitionId INT8 NOT NULL,
+   description VARCHAR(255),
+   endDate INT8 NOT NULL,
+   stateId INT NOT NULL,
+   rootProcessInstanceId INT8,
+   callerId INT8,
+   sourceObjectId INT8 NOT NULL,
+   stringIndex1 VARCHAR(255),
+   stringIndex2 VARCHAR(255),
+   stringIndex3 VARCHAR(255),
+   stringIndex4 VARCHAR(255),
+   stringIndex5 VARCHAR(255),
+   PRIMARY KEY (tenantid, id)
+);
 
 CREATE TABLE arch_flownode_instance (
   tenantid INT8 NOT NULL,
@@ -104,16 +80,7 @@ CREATE TABLE arch_flownode_instance (
   sourceObjectId INT8,
   archiveDate INT8 NOT NULL,
   rootContainerId INT8 NOT NULL,
---   parentContainerId INT8 NOT NULL,
---   name VARCHAR(255) NOT NULL,
---   displayName VARCHAR(255),
---   displayDescription VARCHAR(255),
---   stateId INT NOT NULL,
---   stateName VARCHAR(50),
---   terminal BOOLEAN NOT NULL,
   stable BOOLEAN ,
---   actorId INT8 NULL,
---   assigneeId INT8 DEFAULT 0 NOT NULL,
   reachedStateDate INT8,
   lastUpdateDate INT8,
   expectedEndDate INT8,
@@ -121,10 +88,7 @@ CREATE TABLE arch_flownode_instance (
   priority SMALLINT,
   gatewayType VARCHAR(50),
   hitBys VARCHAR(255),
---   logicalGroup1 INT8 NOT NULL,
---   logicalGroup2 INT8 NOT NULL,
   logicalGroup3 INT8,
---   logicalGroup4 INT8 NOT NULL,
   loop_counter INT,
   loop_max INT,
   loopCardinality INT,
@@ -140,7 +104,6 @@ CREATE TABLE arch_flownode_instance (
   executedBy INT8,
   executedBySubstitute INT8,
   activityInstanceId INT8,
---   aborting BOOLEAN NOT NULL,
   triggeredByEvent BOOLEAN,
   interrupting BOOLEAN,
   PRIMARY KEY (tenantid, id)
@@ -153,7 +116,6 @@ CREATE TABLE arch_connector_instance (
   id INT8 NOT NULL,
   containerId INT8 NOT NULL,
   containerType VARCHAR(10) NOT NULL,
---   connectorId VARCHAR(255) NOT NULL,
   version VARCHAR(50) NOT NULL,
   name VARCHAR(255) NOT NULL,
   activationEvent VARCHAR(30),
@@ -168,12 +130,9 @@ CREATE INDEX idx1_arch_connector_instance ON arch_connector_instance (tenantId, 
 CREATE TABLE arch_ref_biz_data_inst (
 	tenantid BIGINT NOT NULL,
   	id BIGINT NOT NULL,
---   	kind VARCHAR(15) NOT NULL,
---   	name VARCHAR(255) NOT NULL,
   	orig_proc_inst_id BIGINT,
   	orig_fn_inst_id BIGINT,
   	data_id BIGINT
---   	data_classname VARCHAR(255) NOT NULL
 );
 CREATE INDEX idx_arch_biz_data_inst1 ON arch_ref_biz_data_inst (tenantid, orig_proc_inst_id);
 CREATE INDEX idx_arch_biz_data_inst2 ON arch_ref_biz_data_inst (tenantid, orig_fn_inst_id);
@@ -207,8 +166,6 @@ CREATE TABLE arch_data_instance (
 	floatValue REAL,
 	blobValue BYTEA,
 	clobValue TEXT,
--- 	discriminant VARCHAR(50) NOT NULL,
 	archiveDate INT8 NOT NULL,
--- 	sourceObjectId INT8 NOT NULL,
 	PRIMARY KEY (tenantid, id)
 );
