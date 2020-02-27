@@ -66,7 +66,7 @@ class DeleteOldProcessInstancesIT {
     }
 
     @Test
-    fun `should delete the records of a process before a timestamp and leave records of other processes and records after the timestamp`() {
+    fun `should delete records of a process before a timestamp and leave records of other processes and records after the timestamp`() {
 
         // given:
         val rowsNotToDelete = """
@@ -125,41 +125,41 @@ select count(id) FROM arch_process_instance A WHERE exists (
         assertThat(nbOfArchProcessInstancesToDelete).`as`("There should be not more lines to delete").isEqualTo(0)
 
         // 4 lines deleted, 2 remaining:
-        val archContractDataForProcess = jdbcTemplate.queryForList("SELECT id FROM arch_contract_data WHERE KIND = 'PROCESS'")
+        val archContractDataForProcess = jdbcTemplate.queryForList("SELECT id FROM arch_contract_data WHERE KIND = 'PROCESS'", Long::class.java)
         assertThat(archContractDataForProcess.size).isEqualTo(2)
-        assertThat(archContractDataForProcess).extracting("id").containsOnly(21L, 101L)
+        assertThat(archContractDataForProcess).containsOnly(21L, 101L)
         // 16 lines deleted, 7 remaining:
-        val archDataInstancesForProcess = jdbcTemplate.queryForList("SELECT id from arch_data_instance where CONTAINERTYPE = 'PROCESS_INSTANCE'")
+        val archDataInstancesForProcess = jdbcTemplate.queryForList("SELECT id from arch_data_instance where CONTAINERTYPE = 'PROCESS_INSTANCE'", Long::class.java)
         assertThat(archDataInstancesForProcess.size).isEqualTo(7)
-        assertThat(archDataInstancesForProcess).extracting("id").containsOnly(61L, 64L, 65L, 66L, 25001L, 25004L, 25005L)
+        assertThat(archDataInstancesForProcess).containsOnly(61L, 64L, 65L, 66L, 25001L, 25004L, 25005L)
         // 8 deleted, 2 remaining:
-        val archDocumentMapping = jdbcTemplate.queryForList("SELECT id from arch_document_mapping")
+        val archDocumentMapping = jdbcTemplate.queryForList("SELECT id from arch_document_mapping", Long::class.java)
         assertThat(archDocumentMapping.size).isEqualTo(2)
-        assertThat(archDocumentMapping).extracting("id").containsOnly(15L, 16L)
+        assertThat(archDocumentMapping).containsOnly(15L, 16L)
         // 50 arch flowNode instances remaining:
         assertThat(jdbcTemplate.queryForObject("SELECT count(id) from arch_flownode_instance", Int::class.java)).isEqualTo(50)
         // 12 deleted, 3 remaining:
-        val archProcessComments = jdbcTemplate.queryForList("SELECT id from arch_process_comment")
+        val archProcessComments = jdbcTemplate.queryForList("SELECT id from arch_process_comment", Long::class.java)
         assertThat(archProcessComments.size).isEqualTo(3)
-        assertThat(archProcessComments).extracting("id").containsOnly(25L, 26L, 27L)
-        val archRefBizDataInst = jdbcTemplate.queryForList("SELECT id from arch_ref_biz_data_inst")
+        assertThat(archProcessComments).containsOnly(25L, 26L, 27L)
+        val archRefBizDataInst = jdbcTemplate.queryForList("SELECT id from arch_ref_biz_data_inst", Long::class.java)
         assertThat(archRefBizDataInst.size).isEqualTo(2)
-        assertThat(archRefBizDataInst).extracting("id").containsOnly(21L, 22L)
-        val archConnectorInstForProcess = jdbcTemplate.queryForList("SELECT id FROM arch_connector_instance WHERE CONTAINERTYPE = 'process'")
+        assertThat(archRefBizDataInst).containsOnly(21L, 22L)
+        val archConnectorInstForProcess = jdbcTemplate.queryForList("SELECT id FROM arch_connector_instance WHERE CONTAINERTYPE = 'process'", Long::class.java)
         assertThat(archConnectorInstForProcess.size).isEqualTo(2)
-        assertThat(archConnectorInstForProcess).extracting("id").containsOnly(31L, 32L)
+        assertThat(archConnectorInstForProcess).containsOnly(31L, 32L)
         // 4 lines deleted, 2 remaining:
-        val archContractDataForTask = jdbcTemplate.queryForList("SELECT id FROM arch_contract_data WHERE KIND = 'TASK'")
+        val archContractDataForTask = jdbcTemplate.queryForList("SELECT id FROM arch_contract_data WHERE KIND = 'TASK'", Long::class.java)
         assertThat(archContractDataForTask.size).isEqualTo(2)
-        assertThat(archContractDataForTask).extracting("id").containsOnly(22L, 102L)
+        assertThat(archContractDataForTask).containsOnly(22L, 102L)
         // 8 lines deleted, 4 remaining:
-        val archDataInstanceForTask = jdbcTemplate.queryForList("SELECT id FROM arch_data_instance WHERE CONTAINERTYPE = 'ACTIVITY_INSTANCE'")
+        val archDataInstanceForTask = jdbcTemplate.queryForList("SELECT id FROM arch_data_instance WHERE CONTAINERTYPE = 'ACTIVITY_INSTANCE'", Long::class.java)
         assertThat(archDataInstanceForTask.size).isEqualTo(4)
-        assertThat(archDataInstanceForTask).extracting("id").containsOnly(62L, 63L, 25_002L, 25_003L)
+        assertThat(archDataInstanceForTask).containsOnly(62L, 63L, 25_002L, 25_003L)
         // 8 lines deleted, 3 remaining:
-        val archConnectorInstForTask = jdbcTemplate.queryForList("SELECT id FROM arch_connector_instance WHERE CONTAINERTYPE = 'flowNode'")
+        val archConnectorInstForTask = jdbcTemplate.queryForList("SELECT id FROM arch_connector_instance WHERE CONTAINERTYPE = 'flowNode'", Long::class.java)
         assertThat(archConnectorInstForTask.size).isEqualTo(3)
-        assertThat(archConnectorInstForTask).extracting("id").containsOnly(29L, 30L, 101L)
+        assertThat(archConnectorInstForTask).containsOnly(29L, 30L, 101L)
     }
 
 }
