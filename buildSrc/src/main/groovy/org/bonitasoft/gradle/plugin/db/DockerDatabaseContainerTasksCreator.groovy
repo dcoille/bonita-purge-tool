@@ -40,7 +40,7 @@ class DockerDatabaseContainerTasksCreator {
              tag            : '1.0.2-UTF8MB4',
              portBinding    : 3306,
              uriTemplate    : 'jdbc:mysql://%s:%s/bonita?allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8',
-             driverClassName: 'com.mysql.jdbc.Driver',
+             driverClassName: 'com.mysql.cj.jdbc.Driver',
              rootUser       : 'root',
              rootPassword   : 'root'
             ],

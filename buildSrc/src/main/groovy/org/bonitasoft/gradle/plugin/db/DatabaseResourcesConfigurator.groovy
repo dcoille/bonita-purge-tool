@@ -5,7 +5,7 @@ import org.gradle.api.Project
 class DatabaseResourcesConfigurator {
 
     def static configureDatabaseResources(Project project) {
-        String dbVendor = System.getProperty("db.vendor", project.hasProperty("db.vendor") ? project.getProperty("db.vendor") : "postgres")
+        String dbVendor = System.getProperty("db.vendor", "postgres")
         DatabasePluginExtension extension = project.extensions.getByType(DatabasePluginExtension.class)
         extension.dbvendor = dbVendor
         project.logger.info("no system property db.url set, using docker to test on $dbVendor")
