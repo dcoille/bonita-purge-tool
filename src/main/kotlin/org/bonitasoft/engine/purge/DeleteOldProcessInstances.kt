@@ -25,7 +25,7 @@ import kotlin.system.measureTimeMillis
 class DeleteOldProcessInstances(
         @Value("\${org.bonitasoft.engine.purge.skip_confirmation:true}") private val skipConfirmation: Boolean,
         @Value("\${spring.datasource.url:#{null}}") private val databaseUrl: String?,
-        @Value("\${spring.datasource.driver-class-name:h2}") private val driverClassName: String,
+        @Value("\${spring.datasource.driver-class-name:org.postgresql.Driver}") private val driverClassName: String,
         private val jdbcTemplate: JdbcTemplate) {
 
     private val logger = LoggerFactory.getLogger(DeleteOldProcessInstances::class.java)

@@ -15,13 +15,14 @@ import kotlin.test.BeforeTest
 /**
  * @author Emmanuel Duchastenier
  */
+@Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
 @SpringBootTest
 class DeleteOldProcessInstancesIT {
 
     @Autowired
     lateinit var deleteOldProcessInstances: DeleteOldProcessInstances
 
-    @Value("\${spring.datasource.driver-class-name:h2}")
+    @Value("\${spring.datasource.driver-class-name:org.postgresql.Driver}")
     lateinit var driverClassName: String
 
     @Autowired

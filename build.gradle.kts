@@ -74,6 +74,7 @@ dependencies {
     implementation("mysql:mysql-connector-java:8.0.14")
     implementation("org.postgresql:postgresql:42.2.5")
     implementation("com.microsoft.sqlserver:mssql-jdbc:7.2.1.jre8")
+    implementation("com.oracle.ojdbc:ojdbc8:19.3.0.0")
 
     testImplementation("org.springframework.boot", "spring-boot-starter-test")
     testImplementation("org.apache.commons", "commons-csv", "1.6")
@@ -81,8 +82,6 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.6.0")
     testImplementation("org.assertj:assertj-core:3.11.1")
     testImplementation("io.mockk:mockk:1.9.3")
-
-    testRuntimeOnly("com.oracle.ojdbc:ojdbc8:19.3.0.0")
 
 }
 tasks.withType<Test> {
