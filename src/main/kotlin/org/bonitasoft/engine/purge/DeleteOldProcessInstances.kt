@@ -82,7 +82,7 @@ class DeleteOldProcessInstances(
 
         logger.info("Deleted $nbRows rows from table ARCH_PROCESS_INSTANCE...")
 
-        executeSQLScript("/delete_scenario_${getDbVendor(driverClassName)}.sql", validTenantId)
+        executeSQLScript("/delete_orphans_${getDbVendor(driverClassName)}.sql", validTenantId)
     }
 
     internal fun purgeArchContractDataTableIfExists(validTenantId: Long) {
@@ -91,7 +91,7 @@ class DeleteOldProcessInstances(
         }
         if (archContractDataBackupTableExists) {
             logger.info("Detected presence of table ARCH_CONTRACT_DATA_BACKUP. Purging it as well.")
-            executeSQLScript("/optional_backup_table_purge.sql", validTenantId)
+            executeSQLScript("/optional_delete_orphans_${getDbVendor(driverClassName)}.sql", validTenantId)
         }
     }
 
