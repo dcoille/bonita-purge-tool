@@ -25,6 +25,7 @@ import kotlin.system.measureTimeMillis
 class DeleteOldProcessInstances(
         @Value("\${org.bonitasoft.engine.purge.skip_confirmation:true}") private val skipConfirmation: Boolean,
         @Value("\${spring.datasource.url:#{null}}") private val databaseUrl: String?,
+        @Value("\${spring.datasource.driver-class-name:org.postgresql.Driver}") private val driverClassName: String,
         private val jdbcTemplate: JdbcTemplate) {
 
     private val logger = LoggerFactory.getLogger(DeleteOldProcessInstances::class.java)
@@ -74,18 +75,14 @@ class DeleteOldProcessInstances(
             Instant.ofEpochMilli(date).atZone(ZoneId.systemDefault()).toLocalDateTime()
 
     internal fun doExecutePurge(processDefinitionId: Long, date: Long, validTenantId: Long) {
-        val nbRows = jdbcTemplate.update("""
-    DELETE FROM ARCH_PROCESS_INSTANCE A WHERE exists (
-    SELECT rootprocessinstanceid
-    FROM ARCH_PROCESS_INSTANCE B
-    WHERE B.ROOTPROCESSINSTANCEID = B.SOURCEOBJECTID
-    AND A.ROOTPROCESSINSTANCEID = B.ROOTPROCESSINSTANCEID
-    AND PROCESSDEFINITIONID = ?
-    and (STATEID = 6 OR STATEID = 3 OR STATEID = 4)
-    AND ENDDATE <= ?) AND tenantId = ?""", processDefinitionId, date, validTenantId)
+        val statements: MutableList<String> = mutableListOf()
+        ScriptUtils.splitSqlScript(this::class.java.getResource("/delete_arch_process_instance_${getDbVendor(driverClassName)}.sql").readText(Charsets.UTF_8), ";", statements)
+        logger.debug("Executing SQL: ${statements[0]}")
+        val nbRows = jdbcTemplate.update(statements[0], processDefinitionId, date, validTenantId)
+
         logger.info("Deleted $nbRows rows from table ARCH_PROCESS_INSTANCE...")
 
-        executeSQLScript("/delete_scenario.sql", validTenantId)
+        executeSQLScript("/delete_orphans_${getDbVendor(driverClassName)}.sql", validTenantId)
     }
 
     internal fun purgeArchContractDataTableIfExists(validTenantId: Long) {
@@ -94,7 +91,7 @@ class DeleteOldProcessInstances(
         }
         if (archContractDataBackupTableExists) {
             logger.info("Detected presence of table ARCH_CONTRACT_DATA_BACKUP. Purging it as well.")
-            executeSQLScript("/optional_backup_table_purge.sql", validTenantId)
+            executeSQLScript("/optional_delete_orphans_${getDbVendor(driverClassName)}.sql", validTenantId)
         }
     }
 
@@ -186,5 +183,13 @@ class DeleteOldProcessInstances(
     }
 
     internal fun quitWithCode(i: Int): Nothing = exitProcess(i)
-
 }
+
+fun getDbVendor(driverClassName: String) =
+        when {
+            driverClassName.contains("postgresql") -> "postgres"
+            driverClassName.contains("oracle") -> "oracle"
+            driverClassName.contains("mysql") -> "mysql"
+            driverClassName.contains("sqlserver") -> "sqlserver"
+            else -> throw RuntimeException("Cannot determine database vendor from driver $driverClassName")
+        }

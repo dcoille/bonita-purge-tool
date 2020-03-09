@@ -1,3 +1,23 @@
+CREATE TABLE tenant (
+    id BIGINT NOT NULL,
+    description VARCHAR(255),
+    iconname VARCHAR(50),
+    iconpath VARCHAR(255),
+    name VARCHAR(50) NOT NULL,
+    PRIMARY KEY (id)
+) ENGINE = INNODB;
+CREATE TABLE process_definition (
+    tenantid BIGINT NOT NULL,
+    id BIGINT NOT NULL,
+    processId BIGINT NOT NULL,
+    name VARCHAR(150) NOT NULL,
+    version VARCHAR(50) NOT NULL,
+    lastUpdateDate BIGINT,
+    categoryId BIGINT,
+    iconPath VARCHAR(255),
+    PRIMARY KEY (tenantid, id),
+    UNIQUE (tenantid, name, version)
+) ENGINE = INNODB;
 CREATE TABLE arch_contract_data (
   tenantid BIGINT NOT NULL,
   id BIGINT NOT NULL,
@@ -15,16 +35,10 @@ CREATE INDEX idx_acd_scope_name ON arch_contract_data (kind, scopeId, name, tena
 CREATE TABLE arch_process_comment(
   tenantid BIGINT NOT NULL,
   id BIGINT NOT NULL,
-  userId BIGINT,
   processInstanceId BIGINT NOT NULL,
-  postDate BIGINT NOT NULL,
-  content VARCHAR(512) NOT NULL,
   archiveDate BIGINT NOT NULL,
-  sourceObjectId BIGINT NOT NULL,
   PRIMARY KEY (tenantid, id)
 ) ENGINE = INNODB;
-CREATE INDEX idx1_arch_process_comment on arch_process_comment (sourceobjectid, tenantid);
-CREATE INDEX idx2_arch_process_comment on arch_process_comment (processInstanceId, archivedate, tenantid);
 
 CREATE TABLE arch_document_mapping (
   tenantid BIGINT NOT NULL,
@@ -34,8 +48,6 @@ CREATE TABLE arch_document_mapping (
   documentid BIGINT NOT NULL,
   name VARCHAR(50) NOT NULL,
   description TEXT,
-  version VARCHAR(50) NOT NULL,
-  index_ INT NOT NULL,
   archiveDate BIGINT NOT NULL,
   PRIMARY KEY (tenantid, ID)
 ) ENGINE = INNODB;
@@ -47,13 +59,8 @@ CREATE TABLE arch_process_instance (
   name VARCHAR(75) NOT NULL,
   processDefinitionId BIGINT NOT NULL,
   description VARCHAR(255),
-  startDate BIGINT NOT NULL,
-  startedBy BIGINT NOT NULL,
-  startedBySubstitute BIGINT NOT NULL,
   endDate BIGINT NOT NULL,
-  archiveDate BIGINT NOT NULL,
   stateId INT NOT NULL,
-  lastUpdate BIGINT NOT NULL,
   rootProcessInstanceId BIGINT,
   callerId BIGINT,
   sourceObjectId BIGINT NOT NULL,
@@ -64,9 +71,6 @@ CREATE TABLE arch_process_instance (
   stringIndex5 VARCHAR(255),
   PRIMARY KEY (tenantid, id)
 ) ENGINE = INNODB;
-CREATE INDEX idx1_arch_process_instance ON arch_process_instance (tenantId, sourceObjectId, rootProcessInstanceId, callerId);
-CREATE INDEX idx2_arch_process_instance ON arch_process_instance (tenantId, processDefinitionId, archiveDate);
-CREATE INDEX idx3_arch_process_instance ON arch_process_instance (tenantId, sourceObjectId, callerId, stateId);
 
 CREATE TABLE arch_flownode_instance (
   tenantid BIGINT NOT NULL,
@@ -76,16 +80,7 @@ CREATE TABLE arch_flownode_instance (
   sourceObjectId BIGINT,
   archiveDate BIGINT NOT NULL,
   rootContainerId BIGINT NOT NULL,
-  parentContainerId BIGINT NOT NULL,
-  name VARCHAR(255) NOT NULL,
-  displayName VARCHAR(255),
-  displayDescription VARCHAR(255),
-  stateId INT NOT NULL,
-  stateName VARCHAR(50),
-  terminal BOOLEAN NOT NULL,
   stable BOOLEAN ,
-  actorId BIGINT NULL,
-  assigneeId BIGINT DEFAULT 0 NOT NULL,
   reachedStateDate BIGINT,
   lastUpdateDate BIGINT,
   expectedEndDate BIGINT,
@@ -93,10 +88,7 @@ CREATE TABLE arch_flownode_instance (
   priority TINYINT,
   gatewayType VARCHAR(50),
   hitBys VARCHAR(255),
-  logicalGroup1 BIGINT NOT NULL,
-  logicalGroup2 BIGINT NOT NULL,
   logicalGroup3 BIGINT,
-  logicalGroup4 BIGINT NOT NULL,
   loop_counter INT,
   loop_max INT,
   loopCardinality INT,
@@ -112,23 +104,18 @@ CREATE TABLE arch_flownode_instance (
   executedBy BIGINT,
   executedBySubstitute BIGINT,
   activityInstanceId BIGINT,
-  aborting BOOLEAN NOT NULL,
   triggeredByEvent BOOLEAN,
   interrupting BOOLEAN,
   PRIMARY KEY (tenantid, id)
 ) ENGINE = INNODB;
-CREATE INDEX idx_afi_kind_lg2_executedBy ON arch_flownode_instance(logicalGroup2, tenantId, kind, executedBy);
 CREATE INDEX idx_afi_kind_lg3 ON arch_flownode_instance(tenantId, kind, logicalGroup3);
-CREATE INDEX idx_afi_kind_lg4 ON arch_flownode_instance(tenantId, logicalGroup4);
 CREATE INDEX idx_afi_sourceId_tenantid_kind ON arch_flownode_instance (sourceObjectId, tenantid, kind);
-CREATE INDEX idx1_arch_flownode_instance ON arch_flownode_instance (tenantId, rootContainerId, parentContainerId);
 
 CREATE TABLE arch_connector_instance (
   tenantid BIGINT NOT NULL,
   id BIGINT NOT NULL,
   containerId BIGINT NOT NULL,
   containerType VARCHAR(10) NOT NULL,
-  connectorId VARCHAR(255) NOT NULL,
   version VARCHAR(50) NOT NULL,
   name VARCHAR(255) NOT NULL,
   activationEvent VARCHAR(30),
@@ -143,12 +130,9 @@ CREATE INDEX idx1_arch_connector_instance ON arch_connector_instance (tenantId, 
 CREATE TABLE arch_ref_biz_data_inst (
 	tenantid BIGINT NOT NULL,
   	id BIGINT NOT NULL,
-  	kind VARCHAR(15) NOT NULL,
-  	name VARCHAR(255) NOT NULL,
   	orig_proc_inst_id BIGINT,
   	orig_fn_inst_id BIGINT,
-  	data_id BIGINT,
-  	data_classname VARCHAR(255) NOT NULL
+  	data_id BIGINT
 );
 CREATE INDEX idx_arch_biz_data_inst1 ON arch_ref_biz_data_inst (tenantid, orig_proc_inst_id);
 CREATE INDEX idx_arch_biz_data_inst2 ON arch_ref_biz_data_inst (tenantid, orig_fn_inst_id);
@@ -182,11 +166,6 @@ CREATE TABLE arch_data_instance (
 	floatValue FLOAT,
 	blobValue MEDIUMBLOB,
 	clobValue MEDIUMTEXT,
-	discriminant VARCHAR(50) NOT NULL,
 	archiveDate BIGINT NOT NULL,
-	sourceObjectId BIGINT NOT NULL,
 	PRIMARY KEY (tenantid, id)
 ) ENGINE = INNODB;
-
-CREATE INDEX idx1_arch_data_instance ON arch_data_instance (tenantId, containerId, containerType, archiveDate, name, sourceObjectId);
-CREATE INDEX idx2_arch_data_instance ON arch_data_instance (sourceObjectId, containerId, archiveDate, id, tenantId);
