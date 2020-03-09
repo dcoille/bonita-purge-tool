@@ -21,7 +21,10 @@ This command will delete all archived process instances belonging to the process
 
 An optional TENANT_ID parameter can be given if the platform uses multiple tenants to specify on which tenant should the process instances be deleted. If multi-tenancy is used and the TENANT_ID is not set, an error is issued and the program stops.
 
-OLDEST_DATE_TIMESTAMP must be a DATE from which all process instances that finished before that date will be deleted. Unfinished process instances and process instances that finished after that date will not be affected.
+OLDEST_DATE_TIMESTAMP must be a Timestamp (in milliseconds) from which all process instances that finished before that date will be deleted.
+Unfinished process instances and process instances that finished after that date will not be affected.
+Its format is a standard Java timestamp since [EPOCH](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/Instant.html#EPOCH) (in milliseconds).
+You can use websites such as [Epoch Converter](https://www.epochconverter.com/) to format such a timestamp.
     
 ### Run the tool using the CLI (Command line interface)
 

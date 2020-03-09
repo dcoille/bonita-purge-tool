@@ -31,7 +31,7 @@ private fun usage(): Nothing {
     logger.error("""Invalid number/format of parameters.
 Usage: bonita-purge-tool(.bat) <PROCESS_DEFINITION_ID> <OLDEST_DATE_TIMESTAMP> [<TENANT_ID>]
        This command will delete all archived process instances belonging to the Process
-       identified by PROCESS_DEFINITION_ID, that are finished since at least OLDEST_DATE_TIMESTAMP.
+       identified by PROCESS_DEFINITION_ID, that are finished since at least OLDEST_DATE_TIMESTAMP (in milliseconds since Epoch).
        An optional TENANT_ID parameter can be given if the platform uses multiple tenants to specify on which tenant should the process instances be deleted.
        If multi-tenancy is used and the TENANT_ID is not set, an error is issued and the program stops.
 """)
