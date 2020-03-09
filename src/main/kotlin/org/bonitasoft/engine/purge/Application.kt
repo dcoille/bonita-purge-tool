@@ -9,9 +9,12 @@ import kotlin.system.measureTimeMillis
 @SpringBootApplication
 open class Application
 
-private val logger = LoggerFactory.getLogger(Application::class.java)
+val logger = LoggerFactory.getLogger(Application::class.java)
 
 fun main(args: Array<String>) {
+    if (!UniqueInstance.createSemaphore()) {
+        exitProcess(-1)
+    }
     val context = SpringApplication.run(Application::class.java, *args)
     val processInstancePurge = context.getBean(DeleteOldProcessInstances::class.java)
     // tenantId, parameter number 3, is optional:
@@ -24,6 +27,7 @@ fun main(args: Array<String>) {
     }
     logger.info("Execution completed in $executionTime ms")
     context.close()
+    UniqueInstance.releaseSemaphore()
     exitProcess(0)
 }
 
