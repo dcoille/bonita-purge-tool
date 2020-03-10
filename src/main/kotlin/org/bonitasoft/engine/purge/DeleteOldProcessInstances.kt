@@ -26,11 +26,15 @@ class DeleteOldProcessInstances(
         @Value("\${org.bonitasoft.engine.purge.skip_confirmation:true}") private val skipConfirmation: Boolean,
         @Value("\${spring.datasource.url:#{null}}") private val databaseUrl: String?,
         @Value("\${spring.datasource.driver-class-name:org.postgresql.Driver}") private val driverClassName: String,
+        @Value("\${org.bonitasoft.engine.purge.bulk.size}") private val bulkSize: Int,
         private val jdbcTemplate: JdbcTemplate) {
 
     private val logger = LoggerFactory.getLogger(DeleteOldProcessInstances::class.java)
 
+    private lateinit var dbVendor: String
+
     fun execute(processDefinitionId: Long, date: Long, tenantId: Long?) {
+        dbVendor = getDbVendor(driverClassName)
         val validTenantId = checkTenantIdValidity(tenantId)
 
         logger.info("Database URL is $databaseUrl")
@@ -65,9 +69,9 @@ class DeleteOldProcessInstances(
                 quitWithCode(2)
             }
         }
-        logger.info("Starting archive process instance purge....")
+        logger.info("Starting archive process instance purge...")
         doExecutePurge(processDefinitionId, date, validTenantId)
-        purgeArchContractDataTableIfExists(validTenantId)
+
         logPurgeFinishedAndWarn()
     }
 
@@ -75,14 +79,22 @@ class DeleteOldProcessInstances(
             Instant.ofEpochMilli(date).atZone(ZoneId.systemDefault()).toLocalDateTime()
 
     internal fun doExecutePurge(processDefinitionId: Long, date: Long, validTenantId: Long) {
-        val statements: MutableList<String> = mutableListOf()
-        ScriptUtils.splitSqlScript(this::class.java.getResource("/delete_arch_process_instance_${getDbVendor(driverClassName)}.sql").readText(Charsets.UTF_8), ";", statements)
+
+        executeSQLScript("/$dbVendor/1_pre_purge.sql")
+
+        val statements = getSQLStatements("/$dbVendor/2_delete_arch_process_instance.sql")
         logger.debug("Executing SQL: ${statements[0]}")
-        val nbRows = jdbcTemplate.update(statements[0], processDefinitionId, date, validTenantId)
+        do {
+            var nbRows = 0
+            val executionTime = measureTimeMillis {
+                nbRows = jdbcTemplate.update(statements[0], processDefinitionId, date, validTenantId)
+            }
+            logger.info("Deleted $nbRows rows from table ARCH_PROCESS_INSTANCE in $executionTime ms")
+        } while (nbRows == bulkSize)
 
-        logger.info("Deleted $nbRows rows from table ARCH_PROCESS_INSTANCE...")
-
-        executeSQLScript("/delete_orphans_${getDbVendor(driverClassName)}.sql", validTenantId)
+        executeSQLScript("/$dbVendor/3_delete_orphans.sql", validTenantId)
+        purgeArchContractDataTableIfExists(validTenantId)
+        executeSQLScript("/$dbVendor/5_post_purge.sql")
     }
 
     internal fun purgeArchContractDataTableIfExists(validTenantId: Long) {
@@ -91,25 +103,49 @@ class DeleteOldProcessInstances(
         }
         if (archContractDataBackupTableExists) {
             logger.info("Detected presence of table ARCH_CONTRACT_DATA_BACKUP. Purging it as well.")
-            executeSQLScript("/optional_delete_orphans_${getDbVendor(driverClassName)}.sql", validTenantId)
+            executeSQLScript("/$dbVendor/4_optional_delete_orphans.sql", validTenantId)
+        }
+    }
+
+    private fun executeSQLScript(sqlScriptFile: String) {
+        val statements = getSQLStatements(sqlScriptFile)
+        statements.forEach { statement ->
+            run {
+                logger.debug("Executing SQL: $statement")
+                val executionTime = measureTimeMillis {
+                    jdbcTemplate.update(statement)
+                }
+                logger.debug("SQL command executed in $executionTime ms")
+            }
         }
     }
 
     private fun executeSQLScript(sqlScriptFile: String, validTenantId: Long) {
-        val statements: MutableList<String> = mutableListOf()
-        ScriptUtils.splitSqlScript(this::class.java.getResource(sqlScriptFile).readText(Charsets.UTF_8), ";", statements)
+        val statements = getSQLStatements(sqlScriptFile)
         statements.forEach { statement ->
+            val startIndex = statement.indexOf("FROM ") + 5 // FROM must be written in capital letters !
+            val tableName = statement.substring(startIndex, statement.indexOf(" ", startIndex))
             run {
                 logger.debug("Executing SQL: $statement")
                 var nbRowsDeleted = 0
-                val executionTime = measureTimeMillis {
-                    nbRowsDeleted = jdbcTemplate.update(statement, validTenantId, validTenantId)
-                }
-                val startIndex = statement.indexOf("FROM ") + 5 // FROM must be written in capital letters !
-                val tableName = statement.substring(startIndex, statement.indexOf(" ", startIndex))
-                logger.info("Deleted $nbRowsDeleted rows from table $tableName in $executionTime ms")
+                do {
+                    val executionTime = measureTimeMillis {
+                        nbRowsDeleted = if (dbVendor == "mysql") {
+                            jdbcTemplate.update(statement, validTenantId, validTenantId, bulkSize)
+                        } else {
+                            jdbcTemplate.update(statement, validTenantId, validTenantId)
+                        }
+                    }
+                    logger.info("Deleted $nbRowsDeleted rows from table $tableName in $executionTime ms")
+                } while (nbRowsDeleted == bulkSize)
             }
         }
+    }
+
+    private fun getSQLStatements(script: String): MutableList<String> {
+        val statements: MutableList<String> = mutableListOf()
+        ScriptUtils.splitSqlScript(this::class.java.getResource(script).readText(Charsets.UTF_8), ";", statements)
+        return statements
     }
 
     internal fun checkTenantIdValidity(tenantId: Long?): Long {
@@ -161,10 +197,7 @@ class DeleteOldProcessInstances(
 
     internal fun countArchivedProcessInstances(processDefinitionId: Long): Int = transaction {
         ArchProcessInstance
-                .select {
-                    ArchProcessInstance.definitionId eq processDefinitionId
-                }
-                .count()
+                .select { ArchProcessInstance.definitionId eq processDefinitionId }.count()
     }
 
     private fun logPurgeFinishedAndWarn() {

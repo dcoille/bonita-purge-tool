@@ -14,7 +14,7 @@
         </encoder>
     </appender>
 
-    <logger name="org.bonitasoft" level="INFO" />
+    <logger name="org.bonitasoft" level="DEBUG" />
     <logger name="com.zaxxer.hikari.pool.HikariPool" level="OFF" />
 
     <root level="ERROR">

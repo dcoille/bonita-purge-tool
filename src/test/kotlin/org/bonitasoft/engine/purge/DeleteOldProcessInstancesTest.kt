@@ -19,7 +19,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 internal class DeleteOldProcessInstancesTest {
 
     @SpyK
-    private var deleteOldProcessInstances = DeleteOldProcessInstances(true, "dummy url", "dummy driver", mockk())
+    private var deleteOldProcessInstances = DeleteOldProcessInstances(true, "dummy url", "dummy driver", 10, mockk())
 
     @Test
     fun execute_should_fail_if_process_does_not_exist() {
