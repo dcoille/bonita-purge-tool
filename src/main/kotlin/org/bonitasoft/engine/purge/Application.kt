@@ -26,6 +26,9 @@ fun main(args: Array<String>) {
         processInstancePurge.execute(getLong(args[0]), getLong(args[1]), tenantId)
     }
     logger.info("Execution completed in $executionTime ms")
+    logger.info("According to the database type you use, you may need to execute certain maintenance commands")
+    logger.info("to reclaim space or optimize the newly purged tables.")
+    logger.info("Eg. VACUUM REINDEX on PostgreSQL")
     context.close()
     UniqueInstance.releaseSemaphore()
     exitProcess(0)
