@@ -26,7 +26,7 @@ class DeleteOldProcessInstances(
         @Value("\${org.bonitasoft.engine.purge.skip_confirmation:true}") private val skipConfirmation: Boolean,
         @Value("\${spring.datasource.url:#{null}}") private val databaseUrl: String?,
         @Value("\${spring.datasource.driver-class-name:org.postgresql.Driver}") private val driverClassName: String,
-        @Value("\${org.bonitasoft.engine.purge.bulk.size}") private val bulkSize: Int,
+        @Value("\${org.bonitasoft.engine.purge.mysql.bulk.size}") private val bulkSize: Int,
         private val jdbcTemplate: JdbcTemplate) {
 
     private val logger = LoggerFactory.getLogger(DeleteOldProcessInstances::class.java)
@@ -84,13 +84,11 @@ class DeleteOldProcessInstances(
 
         val statements = getSQLStatements("/$dbVendor/2_delete_arch_process_instance.sql")
         logger.debug("Executing SQL: ${statements[0]}")
-        do {
-            var nbRows = 0
-            val executionTime = measureTimeMillis {
-                nbRows = jdbcTemplate.update(statements[0], processDefinitionId, date, validTenantId)
-            }
-            logger.info("Deleted $nbRows rows from table ARCH_PROCESS_INSTANCE in $executionTime ms")
-        } while (nbRows == bulkSize)
+        var nbRows = 0
+        val executionTime = measureTimeMillis {
+            nbRows = jdbcTemplate.update(statements[0], processDefinitionId, date, validTenantId)
+        }
+        logger.info("Deleted $nbRows rows from table ARCH_PROCESS_INSTANCE in $executionTime ms")
 
         executeSQLScript("/$dbVendor/3_delete_orphans.sql", validTenantId)
         purgeArchContractDataTableIfExists(validTenantId)
