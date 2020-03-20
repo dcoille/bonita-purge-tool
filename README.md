@@ -11,11 +11,16 @@ By default, all archives are preserved forever in Bonita runtime, but if your fu
 Bonita Purge Tool uses gradle & spring boot to build. Before building, it's recommended to modify the application.properties file located in src/main/resources to enter your database connection information.
 
 Make sure you have Java 8+ installed and simply run:
-    ./gradlew bootJar
+    ./gradlew bootDistZip
     
 ### Run the tool
 
-    java -jar build/libs/bonita-purge-tool.jar <PROCESS_DEFINITION_ID> <OLDEST_DATE_TIMESTAMP> [<TENANT_ID>]
+    # Unzip the previously built tool:
+    unzip -d . build/distributions/bonita-purge-tool.zip
+    # go to the tool folder:
+    cd bonita-purge-tool/
+    # run the command-line tool:
+    bin/bonita-purge-tool(.bat) <PROCESS_DEFINITION_ID> <OLDEST_DATE_TIMESTAMP> [<TENANT_ID>]
     
 This command will delete all archived process instances belonging to the process identified by **PROCESS_DEFINITION_ID**, that are finished since at least **OLDEST_DATE_TIMESTAMP**.
 
@@ -25,10 +30,7 @@ OLDEST_DATE_TIMESTAMP must be a Timestamp (in milliseconds) from which all proce
 Unfinished process instances and process instances that finished after that date will not be affected.
 Its format is a standard Java timestamp since [EPOCH](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/Instant.html#EPOCH) (in milliseconds).
 You can use websites such as [Epoch Converter](https://www.epochconverter.com/) to format such a timestamp.
-    
-### Run the tool using the CLI (Command line interface)
 
-    bin/bonita-purge-tool(.bat) <PROCESS_DEFINITION_ID> <OLDEST_DATE_TIMESTAMP> [<TENANT_ID>]
 
 ## Developer's corner
 
@@ -50,3 +52,9 @@ to specify the database vendor on which to run the integration tests add `-Ddb.v
     
 valid DB vendor values are: `mysql | oracle | postgres | sqlserver`.  
 If not specified, it will start a **Postgres** docker container and run tests against it.
+
+### Run the tool without building the whole package
+
+    ./gradlew bootRun -Pargs=8901055312492483521,165000000,1
+    
+It runs on PostgreSQL by default. Change the default database parameters to run it on your database.
