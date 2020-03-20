@@ -9,7 +9,7 @@ WHERE KIND = 'PROCESS'
   AND tenantId = ?
   AND NOT EXISTS (
     SELECT ID FROM arch_process_instance b
-    WHERE arch_contract_data.SCOPEID = b.ROOTPROCESSINSTANCEID
+    WHERE arch_contract_data_backup.scopeId = b.rootProcessInstanceId
     AND b.tenantId = ?)
 LIMIT ?;
 
@@ -18,6 +18,6 @@ WHERE KIND = 'TASK'
   AND tenantId = ?
   AND NOT EXISTS (
     SELECT ID FROM arch_flownode_instance b
-    WHERE arch_contract_data_backup.SCOPEID = b.SOURCEOBJECTID
+    WHERE arch_contract_data_backup.scopeId = b.sourceobjectid
     AND b.tenantId = ?)
 LIMIT ?;
