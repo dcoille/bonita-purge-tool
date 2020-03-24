@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service
 import java.net.ConnectException
 import java.time.Instant
 import java.time.ZoneId
+import java.util.concurrent.TimeUnit
 import kotlin.system.exitProcess
 import kotlin.system.measureTimeMillis
 
@@ -135,6 +136,10 @@ class DeleteOldProcessInstances(
                         }
                     }
                     logger.info("Deleted $nbRowsDeleted rows from table $tableName in $executionTime ms")
+
+                    if (dbVendor == "mysql") {
+                        TimeUnit.SECONDS.sleep(1L)
+                    }
                 } while (nbRowsDeleted == bulkSize)
             }
         }

@@ -58,3 +58,8 @@ If not specified, it will start a **Postgres** docker container and run tests ag
     ./gradlew bootRun -Pargs=8901055312492483521,165000000,1
     
 It runs on PostgreSQL by default. Change the default database parameters to run it on your database.
+
+
+## Database deletion volume testing reference
+
+This [reference page](database_deletion_volume_testing.md) provides the tests run on all supported databases.
