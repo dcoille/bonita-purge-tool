@@ -31,6 +31,13 @@ Unfinished process instances and process instances that finished after that date
 Its format is a standard Java timestamp since [EPOCH](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/Instant.html#EPOCH) (in milliseconds).
 You can use websites such as [Epoch Converter](https://www.epochconverter.com/) to format such a timestamp.
 
+### Deletion strategy
+
+This tool will first delete all archived process instances that are concerned by this purge. Then tables containing associated elements will be scanned to remove orphans.
+
+
+This strategy allows this tool to be more robust, it can be stopped at any given time, relaunching it will continue the deletion from where it stopped. However, this means that the time required to execute one purge will be the same when deleteing a few elements or a lot of elements.
+
 
 ## Developer's corner
 
